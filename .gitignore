@@ -1,0 +1,12 @@
+*.o
+*.out
+*.exe
+bank_system
+build/
+data/*.json
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+push.py
