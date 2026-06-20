@@ -1,4 +1,4 @@
-# Banking System — Phase 1
+# Banking System 
 **Course:** Advanced Programming  
 **Group:** [Group Name]  
 **Members:** [Member 1] — [Member 2]
