@@ -1,18 +1,24 @@
 # Banking System — Phase 1
+**Course:** AP
 **Group:** [Group Name]
 **Members:** [Member 1] — [Member 2]
 
 ---
 
 ## Project Structure
+```
 ├── main.cpp        # Entry point
 ├── src/            # Source files (.cpp)
 ├── include/        # Header files (.h)
 ├── data/           # JSON data files (git-ignored at runtime)
 └── README.md
+```
 
-
-
+## Compile & Run
+```bash
+g++ -std=c++17 -o bank_system main.cpp src/*.cpp
+./bank_system
+```
 
 ## Features (Phase 1)
 - Branch management: create and list branches
