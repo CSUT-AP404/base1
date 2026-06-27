@@ -1,7 +1,7 @@
 # Banking System 
 **Course:** Advanced Programming  
 **Group:** [base1]  
-**Members:** [Matin Mohammadi] — [Rahan HematiNezhad] — [Armin Sahraie]
+**Members:** [Matin Mohammadi] — [Rahan Hemmatinejad] — [Armin Sahraie]
 
 ---
 
