@@ -377,6 +377,7 @@ class Core{
             Account_Cnt = 0;
             Trans_Cnt = 1001;
             read();//load
+            read_fee();
         }
         
         void Add_Branch(string &name, bool Print = 1){
