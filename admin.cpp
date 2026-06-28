@@ -99,6 +99,20 @@ struct Account_Id{
     }
 
     friend ostream& operator<< (ostream &O, const Account_Id &AI);
+    string To_String(){
+        string res = "";
+        for(int i = 0; i < 4; i++){
+            string Tmp = to_string(n[i]);
+            for(int j = 0, sz = (int)Tmp.size(); j < sz - 4; j++){
+                res += '0';
+            }
+            res += Tmp;
+            if(i != 3){
+                res += '-';
+            }
+        }
+        return res;
+    }
 
     Account_Id& operator= (const Account_Id &A){
         for(int i = 0; i < 4; i++){
@@ -367,8 +381,7 @@ class Core{
         vector<Account> BAccounts;
         vector<Transaction> Trans; 
         int Account_Cnt, Trans_Cnt;
-        ld transferFee = 0.00 ;
-        ld balanceInquiryFee = 0.00 ;
+        ld transferFee, balanceInquiryFee;
     public:
         int BankID;
 
@@ -376,10 +389,19 @@ class Core{
             this -> BankID = BankID;
             Account_Cnt = 0;
             Trans_Cnt = 1001;
+            transferFee = 0.00;
+            balanceInquiryFee = 0.00 ;
             read();//load
             read_fee();
         }
         
+        ld Get_Transfer_Fee(){
+            return transferFee;
+        }
+        ld Get_Balance_Inquiry_Fee(){
+            return balanceInquiryFee;
+        }
+
         void Add_Branch(string &name, bool Print = 1){
             int id = 10001 + (int)Branches.size();
             Branches.push_back(Branch (name, id));
@@ -595,7 +617,30 @@ class Core{
             }
             cout << "Error: Account not found." << '\n';
         }
-        void get_balance (string s){
+        void give_balance(int idx, bool isBlocked, bool SPECIAL = 0){
+            if(!isBlocked){
+                if(SPECIAL == 0 && FAccounts[idx].getCoin() < balanceInquiryFee){
+                    cout << "Error: Insufficient funds." << '\n';
+                    return;
+                }
+                Transaction T("Bank inquiry fee", Trans_Cnt++, -balanceInquiryFee, FAccounts[idx].getCoin() - balanceInquiryFee, 
+                FAccounts[idx].getID().To_String(), "Bank");
+                FAccounts[idx].WITHDRAWAL(balanceInquiryFee, T);
+                cout << "Balance inquiry fee: " << balanceInquiryFee << '\n';
+                cout << fixed << setprecision(2);
+                cout << "Balance: " << FAccounts[idx].getCoin() << '\n';
+                cout << "Active: Yes" << '\n';
+                cout << "Branch: " << FAccounts[idx].getBranch() << '\n';
+                cout << defaultfloat << setprecision(6);
+                return;
+            }        
+            cout << fixed << setprecision(2);
+            cout << "Balance: " << BAccounts[idx].getCoin() << '\n';
+            cout << "Active: No" << '\n';
+            cout << "Branch: " << BAccounts[idx].getBranch() << '\n';
+            cout << setprecision(6);
+        }
+        void get_balance (string s, bool SPECIAL = 0){
             Account_Id accid(s);
             int idx = -1;
             for (int i = 0; i < (int)FAccounts.size(); ++ i){
@@ -605,11 +650,7 @@ class Core{
                 }
             }
             if(idx != -1){
-                cout << fixed << setprecision(2);
-                cout << "Balance: " << FAccounts[idx].getCoin() << '\n';
-                cout << "Active: Yes" << '\n';
-                cout << "Branch: " << FAccounts[idx].getBranch() << '\n';
-                cout << defaultfloat << setprecision(6);
+                return give_balance(idx, 0, SPECIAL);
             }
             else{
                 for (int i = 0; i < (int)BAccounts.size(); ++ i){
@@ -619,11 +660,7 @@ class Core{
                     }
                 }
                 if(idx == -1){ cout << "Error: Account not found." << '\n'; return; }
-                cout << fixed << setprecision(2);
-                cout << "Balance: " << BAccounts[idx].getCoin() << '\n';
-                cout << "Active: No" << '\n';
-                cout << "Branch: " << BAccounts[idx].getBranch() << '\n';
-                cout << setprecision(6);
+                give_balance(idx, 1);
             }
         }
         void get_history (string s){
@@ -1002,6 +1039,10 @@ int main(){
             string num; 
             double val;
             cin >> num >> val;
+            if(val <= 0){
+                cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
             core.Deposit(num, val);
             continue ; 
         }
@@ -1012,7 +1053,11 @@ int main(){
             cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
-            core.WITHDRAWAL(num,pass,val);
+            if(val <= 0){
+                cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            core.WITHDRAWAL(num, pass, val);
             continue ; 
         }
         else if(cmd == "transfer"){
@@ -1022,7 +1067,11 @@ int main(){
             cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
-            core.Transfer(from, to, pass, val);
+            if(val <= 0){
+                cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
         }
         else if(cmd == "get_balance"){
