@@ -16,7 +16,7 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
-bool isbad(string &Str){
+bool isbad(string Str){
     return (Str == "reset_all" || Str == "clear_history" || Str == "set_balance_inquiry_fee" || Str == "show_fees" || 
     Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch");
 }
