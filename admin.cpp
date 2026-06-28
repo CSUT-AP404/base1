@@ -96,7 +96,7 @@ struct Account_Id{
     }
     bool operator>= (const Account_Id &A) const{
         return (*this > A || *this == A);
-    }//*/
+    }
 
     friend ostream& operator<< (ostream &O, const Account_Id &AI);
 
@@ -113,7 +113,7 @@ struct Account_Id{
         for(int i = 0; i < 4; i++){
             n[i] = A[i];
         }
-    }//*/
+    }
     ~Account_Id(){}
 };
 ostream& operator<< (ostream &O, const Account_Id &AI){
@@ -367,6 +367,8 @@ class Core{
         vector<Account> BAccounts;
         vector<Transaction> Trans; 
         int Account_Cnt, Trans_Cnt;
+        ld transferFee = 0.00 ;
+        ld balanceInquiryFee = 0.00 ;
     public:
         int BankID;
 
@@ -389,7 +391,36 @@ class Core{
             for(auto &B : Branches){
                 cout << B << endl;
             }
+        } 
+
+        void show_fees(){
+            cout << fixed << setprecision(2);
+            cout << "Transfer fee: " << transferFee << endl;
+            cout << "Balance inquiry fee: " << balanceInquiryFee << endl;
         }
+
+        void set_transfer_fee(ld amount){
+            if(amount < 0){
+                cout << "Error: Invalid fee amount." << endl;
+                return;
+            }
+            transferFee = amount;
+            cout << fixed << setprecision(2) ; 
+            cout << "Transfer fee set to " << amount << endl;
+            write_fee();
+        }
+
+        void set_balance_inquiry_fee(ld amount){
+            if(amount < 0){
+                cout << "Error: Invalid fee amount." << endl;
+                return;
+            }
+            balanceInquiryFee = amount;
+            cout << fixed << setprecision(2) ; 
+            cout << "Balance inquiry fee set to " << amount << endl;
+            write_fee(); 
+        }
+
         void Create_Account(int Branch_Id, string &Pass){
             bool found = false;
             for(auto &B : Branches){
@@ -870,6 +901,27 @@ class Core{
         outFile << j.dump(4);
         outFile.close();
     }
+
+    void read_fee() {
+        ifstream file("fee.json");
+        if(file.is_open()){
+            json j;
+            file >> j;
+            if(j.contains("transfer_fee"))
+                transferFee = j["transfer_fee"];
+            if(j.contains("balance_inquiry_fee")) 
+                balanceInquiryFee = j["balance_inquiry_fee"];
+            file.close();
+        }
+    }
+    void write_fee(){
+        json j;
+        j["transfer_fee"] = transferFee;
+        j["balance_inquiry_fee"] = balanceInquiryFee;
+        ofstream file("fee.json");
+        file << j.dump(4);
+        file.close();
+    }
 };
 /*------------------------------------------------------------------*/
 
@@ -929,6 +981,22 @@ int main(){
         else if(cmd == "list_accounts"){
             core.Account_List();
             continue ; 
+        }
+        else if(cmd == "set_transfer_fee"){
+            ld amount;
+            cin >> amount;
+            core.set_transfer_fee(amount);
+            continue;
+        }
+        else if(cmd == "set_balance_inquiry_fee"){
+            ld amount;
+            cin >> amount;
+            core.set_balance_inquiry_fee(amount);
+            continue;
+        }
+        else if(cmd == "show_fees"){
+            core.show_fees();
+            continue;
         }
         else if(cmd == "deposit"){
             string num; 
