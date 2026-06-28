@@ -18,12 +18,14 @@ typedef long double ld;
 
 bool isbad(string Str){
     return (Str == "reset_all" || Str == "clear_history" || Str == "set_balance_inquiry_fee" || Str == "show_fees" || 
-    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch");
+    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF");
 }
 string runAdmin(const vector<string>& inputs){
-    for(auto &v : inputs){
-        if(isbad(v)){
-            return "Error: Unauthorized request";
+    if(inputs.size() != 1 || inputs[0] != "EOF"){
+        for(auto &v : inputs){
+            if(isbad(v)){
+                return "Error: Unauthorized request";
+            }
         }
     }
     int inpipe[2];
