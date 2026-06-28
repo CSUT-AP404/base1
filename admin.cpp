@@ -904,7 +904,7 @@ class Core{
     }
 
     void read_fee() {
-        ifstream file("fee.json");
+        ifstream file("data/fee.json");
         if(file.is_open()){
             json j;
             file >> j;
@@ -919,7 +919,7 @@ class Core{
         json j;
         j["transfer_fee"] = transferFee;
         j["balance_inquiry_fee"] = balanceInquiryFee;
-        ofstream file("fee.json");
+        ofstream file("data/fee.json");
         file << j.dump(4);
         file.close();
     }
