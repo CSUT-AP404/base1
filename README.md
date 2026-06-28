@@ -15,6 +15,10 @@
 └── README.md
 ```
 
+feat      Feature I'm adding or expanding
+bug       Bug fix or experiment
+junk      Throwaway branch created to experiment
+
 ---
 
 ## How to Compile & Run
