@@ -1,0 +1,90 @@
+#include <bits/stdc++.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sstream>
+#include <stdexcept>
+using namespace std;
+
+typedef long long ll;
+typedef long double ld;
+
+#define fi first
+#define se second
+#define pii pair <int, int>
+#define pll pair <ll, ll>
+#define mt make_tuple
+#define mp make_pair
+#define all(x) (x).begin(), (x).end()
+
+bool isbad(string &Str){
+    return (Str == "reset_all" || Str == "clear_history" || Str == "set_balance_inquiry_fee" || Str == "show_fees" || 
+    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch");
+}
+string runAdmin(const vector<string>& inputs){
+    for(auto &v : inputs){
+        if(isbad(v)){
+            return "Error: Unauthorized request";
+        }
+    }
+    int inpipe[2];
+    int outpipe[2];
+    if(pipe(inpipe) == -1 || pipe(outpipe) == -1){
+        throw runtime_error("Pipe failed");
+    }
+    pid_t pid = fork();
+    if(pid == -1){
+        throw runtime_error("Fork failed");
+    }
+    if(pid == 0){
+        dup2(inpipe[0], STDIN_FILENO);
+        dup2(outpipe[1], STDOUT_FILENO);
+        close(inpipe[1]);
+        close(outpipe[0]);
+        close(inpipe[0]);
+        close(outpipe[1]);
+        execl("./admin", "admin", NULL);
+        _exit(1);
+    }
+    close(inpipe[0]);
+    close(outpipe[1]);
+    ostringstream ss;
+    for(int i = 0, sz = (int)inputs.size(); i < sz; i++){
+        ss << inputs[i];
+        if (i < inputs.size() - 1) {
+            ss << " ";
+        }
+    }
+    ss << "\n";
+    string payload = ss.str();
+    write(inpipe[1], payload.c_str(), payload.size());
+    close(inpipe[1]); 
+    string result;
+    char buffer[4096];
+    ssize_t count;
+    while ((count = read(outpipe[0], buffer, sizeof(buffer))) > 0){
+        result.append(buffer, count);
+    }
+    close(outpipe[0]);
+    waitpid(pid, nullptr, 0);
+    return result;
+}
+
+int main(){
+    ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
+    int compile_status = system("g++ admin.cpp -o admin");
+    if(compile_status != 0){
+        cout << "Error: Core system has some bug" << endl;
+        return 1;
+    }
+    string cmd;
+    bool isLog = 0;
+    while(cin >> cmd){
+        vector<string> payload;
+        if(cmd == "EOF"){
+            payload.push_back("EOF");
+            runAdmin(payload);
+            break;
+        }
+        
+    }
+}

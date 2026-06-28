@@ -384,41 +384,41 @@ class Core{
             int id = 10001 + (int)Branches.size();
             Branches.push_back(Branch (name, id));
             if(Print){
-                cout << "Branch created. ID: " << id << endl;
+                cout << "Branch created. ID: " << id << '\n';
             }
             write();//save
         }
         void List_Branch(){
             for(auto &B : Branches){
-                cout << B << endl;
+                cout << B << '\n';
             }
         } 
 
         void show_fees(){
             cout << fixed << setprecision(2);
-            cout << "Transfer fee: " << transferFee << endl;
-            cout << "Balance inquiry fee: " << balanceInquiryFee << endl;
+            cout << "Transfer fee: " << transferFee << '\n';
+            cout << "Balance inquiry fee: " << balanceInquiryFee << '\n';
         }
 
         void set_transfer_fee(ld amount){
             if(amount < 0){
-                cout << "Error: Invalid fee amount." << endl;
+                cout << "Error: Invalid fee amount." << '\n';
                 return;
             }
             transferFee = amount;
             cout << fixed << setprecision(2) ; 
-            cout << "Transfer fee set to " << amount << endl;
+            cout << "Transfer fee set to " << amount << '\n';
             write_fee();
         }
 
         void set_balance_inquiry_fee(ld amount){
             if(amount < 0){
-                cout << "Error: Invalid fee amount." << endl;
+                cout << "Error: Invalid fee amount." << '\n';
                 return;
             }
             balanceInquiryFee = amount;
             cout << fixed << setprecision(2) ; 
-            cout << "Balance inquiry fee set to " << amount << endl;
+            cout << "Balance inquiry fee set to " << amount << '\n';
             write_fee(); 
         }
 
@@ -431,47 +431,47 @@ class Core{
                 }
             }   
             if(!found){ 
-                cout << "The branch doesnt exist" << endl; 
+                cout << "The branch doesnt exist" << '\n'; 
                 return; 
             }
             FAccounts.push_back(Account (BankID, Account_Cnt++, Branch_Id, Hasher(Pass)));
-            cout << "Account created. Number: " << FAccounts.back().getID() << endl;
+            cout << "Account created. Number: " << FAccounts.back().getID() << '\n';
             write();
         }
         void Close_Account(string &Pass, string &ID){
             Account_Id AI(ID);
             for(auto &A : BAccounts){
                 if(AI == A.getID()){
-                    cout << "Account Already Closed" << endl;
+                    cout << "Account Already Closed" << '\n';
                     return;
                 }
             }
             for(int i = 0, sz = (int)FAccounts.size(); i < sz; i++){
                 if(AI == FAccounts[i].getID()){
                     if(!compare(FAccounts[i].HashPass, Pass)){
-                        cout << "Error: Wrong password." << endl;
+                        cout << "Error: Wrong password." << '\n';
                         return;
                     }
                     FAccounts[i].Active = false;
                     BAccounts.push_back(FAccounts[i]);
                     FAccounts.erase(FAccounts.begin() + i);
-                    cout << "Account closed." << endl;
+                    cout << "Account closed." << '\n';
                     write();
                     return;
                 }
             }
-            cout << "Error: Account not found." << endl;
+            cout << "Error: Account not found." << '\n';
         }
         void Delete_Account(string &Pass, string &ID){
             Account_Id AI(ID);
             for(int i = 0, sz = (int)BAccounts.size(); i < sz; i++){
                 if(AI == BAccounts[i].getID()){
                     if(!compare(BAccounts[i].HashPass, Pass)){
-                        cout << "Error: Wrong password." << endl;
+                        cout << "Error: Wrong password." << '\n';
                         return;
                     }
                     BAccounts.erase(BAccounts.begin() + i);
-                    cout << "Account deleted." << endl;
+                    cout << "Account deleted." << '\n';
                     write();
                     return;
                 }
@@ -479,85 +479,85 @@ class Core{
             for(int i = 0, sz = (int)FAccounts.size(); i < sz; i++){
                 if(AI == FAccounts[i].getID()){
                     if(!compare(FAccounts[i].HashPass, Pass)){
-                        cout << "Error: Wrong password." << endl;
+                        cout << "Error: Wrong password." << '\n';
                         return;
                     }
                     FAccounts.erase(FAccounts.begin() + i);
-                    cout << "Account deleted." << endl;
+                    cout << "Account deleted." << '\n';
                     write();
                     return;
                 }
             }
-            cout << "Error: Account not found." << endl;
+            cout << "Error: Account not found." << '\n';
         }
         void Account_List(){
             cout << fixed << setprecision(2);
             for(auto &A : FAccounts){
-                cout << A.getID() << " | Branch: " << A.getBranch() << " | Active: Yes | Balance: " << A.getCoin() << endl;
+                cout << A.getID() << " | Branch: " << A.getBranch() << " | Active: Yes | Balance: " << A.getCoin() << '\n';
             }
             for(auto &A : BAccounts){
-                cout << A.getID() << " | Branch: " << A.getBranch() << " | Active: No | Balance: " << A.getCoin() << endl;
+                cout << A.getID() << " | Branch: " << A.getBranch() << " | Active: No | Balance: " << A.getCoin() << '\n';
             }
         }
         void Deposit(string &Num, ld val){
             Account_Id AI(Num);
             for(auto &A : BAccounts){
                 if(AI == A.getID()){
-                    cout << "Error: Account is inactive." << endl;
+                    cout << "Error: Account is inactive." << '\n';
                     return;
                 }
             }
             for(auto &A : FAccounts){
                 if(AI == A.getID()){
                     Transaction T("DEPOSIT", Trans_Cnt++, val, A.getCoin() + val, Num, Num);
-                    cout << "Transaction ID: " << T.ID << endl;
-                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() + val << endl;
+                    cout << "Transaction ID: " << T.ID << '\n';
+                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() + val << '\n';
                     A.Deposit(val, T);
                     Trans.push_back(T);
                     write();
                     return;
                 }
             }
-            cout << "Error: Account not found." << endl;
+            cout << "Error: Account not found." << '\n';
         }
         void WITHDRAWAL(string &Num, string &Pass, ld val){
             Account_Id AI(Num);
             for(auto &A : BAccounts){
                 if(AI == A.getID()){
-                    cout << "Error: Account is inactive." << endl;
+                    cout << "Error: Account is inactive." << '\n';
                     return;
                 }
             }
             for(auto &A : FAccounts){
                 if(AI == A.getID()){
                     if(!compare(A.HashPass, Pass)){
-                        cout << "Error: Wrong password." << endl; 
+                        cout << "Error: Wrong password." << '\n'; 
                         return;
                     }
                     if(A.getCoin() < val){
-                        cout << "Error: Insufficient funds." << endl;
+                        cout << "Error: Insufficient funds." << '\n';
                         return;
                     }
                     Transaction T("WITHDRAWAL", Trans_Cnt++, -val, A.getCoin() - val, Num, Num);
-                    cout << "Transaction ID: " << T.ID << endl;
-                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << endl;
+                    cout << "Transaction ID: " << T.ID << '\n';
+                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << '\n';
                     A.WITHDRAWAL(val, T);
                     Trans.push_back(T);
                     write();
                     return;
                 }
             }
-            cout << "Error: Account not found." << endl;
+            cout << "Error: Account not found." << '\n';
         }
         void Transfer(string &Num1, string &Num2, string &Pass, ld val){
             Account_Id AI1(Num1), AI2(Num2);
             for(auto &A : BAccounts){
                 if(AI1 == A.getID()){
-                    cout << "Error: Account is inactive." << endl;
+                    cout << "Error: Account is inactive." << '\n';
                     return;
                 }
                 if(AI2 == A.getID()){
-                    cout << "Error: Destination account is inactive" << endl;
+                    cout << "Error: Destination account is inactive" << '\n';
                     return;
                 }
             }
@@ -569,23 +569,23 @@ class Core{
                 }
             }
             if(j == -1){
-                cout << "Error: Destination account not found." << endl;
+                cout << "Error: Destination account not found." << '\n';
                 return;
             }
             for(auto &A : FAccounts){
                 if(AI1 == A.getID()){
                     if(!compare(A.HashPass, Pass)){
-                        cout << "Error: Wrong password." << endl; 
+                        cout << "Error: Wrong password." << '\n'; 
                         return;
                     }
                     if(A.getCoin() < val){
-                        cout << "Error: Insufficient funds." << endl;
+                        cout << "Error: Insufficient funds." << '\n';
                         return;
                     }
                     Transaction T1("TRANSFER", Trans_Cnt, -val, A.getCoin() - val, Num1, Num2);
                     Transaction T2("TRANSFER", Trans_Cnt++, val, FAccounts[j].getCoin() + val, Num1, Num2);
-                    cout << "Transaction ID: " << T1.ID << endl;
-                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << endl;
+                    cout << "Transaction ID: " << T1.ID << '\n';
+                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << '\n';
                     A.WITHDRAWAL(val, T1);
                     FAccounts[j].Deposit(val, T2);
                     Trans.push_back(T1);
@@ -593,7 +593,7 @@ class Core{
                     return;
                 }
             }
-            cout << "Error: Account not found." << endl;
+            cout << "Error: Account not found." << '\n';
         }
         void get_balance (string s){
             Account_Id accid(s);
@@ -606,9 +606,9 @@ class Core{
             }
             if(idx != -1){
                 cout << fixed << setprecision(2);
-                cout << "Balance: " << FAccounts[idx].getCoin() << endl;
-                cout << "Active: Yes" << endl;
-                cout << "Branch: " << FAccounts[idx].getBranch() << endl;
+                cout << "Balance: " << FAccounts[idx].getCoin() << '\n';
+                cout << "Active: Yes" << '\n';
+                cout << "Branch: " << FAccounts[idx].getBranch() << '\n';
                 cout << defaultfloat << setprecision(6);
             }
             else{
@@ -618,11 +618,11 @@ class Core{
                         break;
                     }
                 }
-                if(idx == -1){ cout << "Error: Account not found." << endl; return; }
+                if(idx == -1){ cout << "Error: Account not found." << '\n'; return; }
                 cout << fixed << setprecision(2);
-                cout << "Balance: " << BAccounts[idx].getCoin() << endl;
-                cout << "Active: No" << endl;
-                cout << "Branch: " << BAccounts[idx].getBranch() << endl;
+                cout << "Balance: " << BAccounts[idx].getCoin() << '\n';
+                cout << "Active: No" << '\n';
+                cout << "Branch: " << BAccounts[idx].getBranch() << '\n';
                 cout << setprecision(6);
             }
         }
@@ -643,7 +643,7 @@ class Core{
                     if(trns.Val >= 0){
                         cout << '+';
                     }
-                    cout << trns.Val << " | Balance: " << trns.BALANCE << endl;
+                    cout << trns.Val << " | Balance: " << trns.BALANCE << '\n';
                 }
             }
             else{
@@ -653,7 +653,7 @@ class Core{
                         break;
                     }
                 }
-                if(idx == -1){ cout << "Error: Account not found." << endl; return; }
+                if(idx == -1){ cout << "Error: Account not found." << '\n'; return; }
                 cout << fixed << setprecision(2);
                 for (int i = 0; i < BAccounts[idx].get_transactions_size(); ++ i){
                     Transaction trns = BAccounts[idx].get_transaction(i);
@@ -661,7 +661,7 @@ class Core{
                     if(trns.Val >= 0){
                         cout << '+';
                     }
-                    cout << trns.Val << " | Balance: " << trns.BALANCE << endl;
+                    cout << trns.Val << " | Balance: " << trns.BALANCE << '\n';
                 }
             }
         }
@@ -671,19 +671,19 @@ class Core{
                 if(Trans[i].ID == id){
                     found = true;
                     cout << fixed << setprecision(2);
-                    cout << "ID: "             << id << endl;
-                    cout << "Time: "           << Trans[i].Time << endl;
-                    cout << "Type: "           << Trans[i].Type << endl;
-                    cout << "From: "           << Trans[i].Origin << endl;
-                    cout << "To: "             << Trans[i].Destination << endl;
-                    cout << "Amount: "         << Trans[i].Val << endl;
-                    cout << "Balance after: "  << Trans[i].BALANCE << endl;
+                    cout << "ID: "             << id << '\n';
+                    cout << "Time: "           << Trans[i].Time << '\n';
+                    cout << "Type: "           << Trans[i].Type << '\n';
+                    cout << "From: "           << Trans[i].Origin << '\n';
+                    cout << "To: "             << Trans[i].Destination << '\n';
+                    cout << "Amount: "         << Trans[i].Val << '\n';
+                    cout << "Balance after: "  << Trans[i].BALANCE << '\n';
                     cout << setprecision(6);
                     break;
                 }
             }
             if(!found){
-                cout << "Error: Transaction not found." << endl;
+                cout << "Error: Transaction not found." << '\n';
             }
         }
         void clear_history (string s){
@@ -696,15 +696,15 @@ class Core{
             }
             if(idx != -1){
                 string pass;
-                cout << "Enter password:" << endl;
+                cout << "Enter password:" << '\n';
                 cin >> pass;
                 if(compare(FAccounts[idx].HashPass, pass)){
                     FAccounts[idx].clear_history();
-                    cout << "History cleared for " << s << endl;
+                    cout << "History cleared for " << s << '\n';
                     write();
                 }
                 else{
-                    cout << "Error: Wrong password." << endl;
+                    cout << "Error: Wrong password." << '\n';
                 }
             }
             else{
@@ -713,22 +713,22 @@ class Core{
                         idx = i;
                     }
                 }
-                if(idx == -1){ cout << "Error: Account not found." << endl; return; }
+                if(idx == -1){ cout << "Error: Account not found." << '\n'; return; }
                 string pass;
-                cout << "Enter password:" << endl;
+                cout << "Enter password:" << '\n';
                 cin >> pass;
                 if(compare(BAccounts[idx].HashPass, pass)){
                     BAccounts[idx].clear_history();
-                    cout << "History cleared for " << s << endl;
+                    cout << "History cleared for " << s << '\n';
                     write();
                 }
                 else{
-                    cout << "Error: Wrong password." << endl;
+                    cout << "Error: Wrong password." << '\n';
                 }
             }
         }
         void reset_all (){
-            cout << "Are you sure? This deletes everything. (yes/no): " << endl;
+            cout << "Are you sure? This deletes everything. (yes/no): " << '\n';
             string is_sure;
             cin >> is_sure;
             if(is_sure == "yes"){
@@ -739,10 +739,10 @@ class Core{
                 Account_Cnt = 0;
                 Trans_Cnt = 1001;
                 remove("BankـData.json");
-                cout << "All data cleared." << endl;
+                cout << "All data cleared." << '\n';
             }
             else{
-                cout << "Cancelled." << endl;
+                cout << "Cancelled." << '\n';
             }
         }
     
@@ -929,9 +929,8 @@ class Core{
 int main(){
     ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     Core core;
-    while(true){
-        string cmd;
-        cin >> cmd;
+    string cmd;
+    while(cin >> cmd){
         if(cmd=="EOF"){
             exit(0);
         }
@@ -955,7 +954,7 @@ int main(){
         else if(cmd == "create_account"){
             int num; 
             cin >> num;
-            cout << "Enter password:" << endl;
+            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             core.Create_Account(num,pass);
@@ -964,7 +963,7 @@ int main(){
         else if(cmd == "close_account"){
             string id; 
             cin >> id;
-            cout << "Enter password:" << endl;
+            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             core.Close_Account(pass, id);
@@ -973,7 +972,7 @@ int main(){
         else if(cmd == "delete_account"){
             string id; 
             cin >> id;
-            cout << "Enter password:" << endl;
+            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             core.Delete_Account(pass, id);
@@ -1010,7 +1009,7 @@ int main(){
             string num; 
             double val;
             cin >> num >> val;
-            cout << "Enter password:" << endl;
+            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             core.WITHDRAWAL(num,pass,val);
@@ -1020,7 +1019,7 @@ int main(){
             string from, to; 
             double val;
             cin >> from >> to >> val;
-            cout << "Enter password:" << endl;
+            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             core.Transfer(from, to, pass, val);
@@ -1054,7 +1053,7 @@ int main(){
             core.reset_all();
             continue ; 
         }
-        cout << "Unknown command" << endl;
+        cout << "Unknown command" << '\n';
     }
     return 0;
 }
