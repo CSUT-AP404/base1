@@ -374,12 +374,26 @@ bool compare(string pass, string input){
     return false ; 
 }
 
+
+struct User {
+    vector<string> id;
+    string codeMelli;
+    string pass;
+    User(){}
+    User(string codeMelli, string pass){
+        this->codeMelli = codeMelli ;
+        this->pass = pass ;
+    }
+};
+
+
 class Core{
     private:
         vector<Branch> Branches;
         vector<Account> FAccounts;
         vector<Account> BAccounts;
-        vector<Transaction> Trans; 
+        vector<Transaction> Trans;
+        vector<User> Users; 
         int Account_Cnt, Trans_Cnt;
         ld transferFee, balanceInquiryFee;
     public:
