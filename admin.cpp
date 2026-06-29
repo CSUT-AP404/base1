@@ -622,22 +622,31 @@ class Core{
                     cout << "Error: Insufficient funds." << '\n';
                     return;
                 }
-                Transaction T("Bank inquiry fee", Trans_Cnt++, -balanceInquiryFee, FAccounts[idx].getCoin() - balanceInquiryFee, 
-                FAccounts[idx].getID().To_String(), "Bank");
-                FAccounts[idx].WITHDRAWAL(balanceInquiryFee, T);
-                cout << "Balance inquiry fee: " << balanceInquiryFee << '\n';
-                cout << fixed << setprecision(2);
-                cout << "Balance: " << FAccounts[idx].getCoin() << '\n';
-                cout << "Active: Yes" << '\n';
-                cout << "Branch: " << FAccounts[idx].getBranch() << '\n';
-                cout << defaultfloat << setprecision(6);
+                if(SPECIAL == 0){
+                    Transaction T("Bank inquiry fee", Trans_Cnt++, -balanceInquiryFee, FAccounts[idx].getCoin() - balanceInquiryFee, 
+                    FAccounts[idx].getIDStr(), "Bank");
+                    FAccounts[idx].WITHDRAWAL(balanceInquiryFee, T);
+                    cout << "Balance inquiry fee: " << balanceInquiryFee << '\n';
+                    cout << fixed << setprecision(2);
+                    cout << "Balance: " << FAccounts[idx].getCoin() << '\n';
+                    cout << "Active: Yes" << '\n';
+                    cout << "Branch: " << FAccounts[idx].getBranch() << '\n';
+                    cout << defaultfloat << setprecision(6);
+                }
+                else{
+                    cout << FAccounts[idx].getIDStr() << " | " << "Balance: " << FAccounts[idx].getCoin() << '\n';
+                }
                 return;
-            }        
-            cout << fixed << setprecision(2);
-            cout << "Balance: " << BAccounts[idx].getCoin() << '\n';
-            cout << "Active: No" << '\n';
-            cout << "Branch: " << BAccounts[idx].getBranch() << '\n';
-            cout << setprecision(6);
+            }     
+            if(SPECIAL == 0){   
+                cout << fixed << setprecision(2);
+                cout << "Balance: " << BAccounts[idx].getCoin() << '\n';
+                cout << "Active: No" << '\n';
+                cout << "Branch: " << BAccounts[idx].getBranch() << '\n';
+                cout << setprecision(6);
+                return;
+            }
+            cout << BAccounts[idx].getIDStr() << " | " << "Balance: " << FAccounts[idx].getCoin() << '\n';
         }
         void get_balance (string s, bool SPECIAL = 0){
             Account_Id accid(s);
@@ -1135,6 +1144,14 @@ int main(){
             core.get_balance(num);
             continue ; 
         }
+        /*---------------------------*/
+        else if(cmd == "get_balance_op"){
+            string num; 
+            cin >> num;
+            core.get_balance(num, 1);
+            continue ; 
+        }
+        /*---------------------------*/
         else if(cmd == "get_history"){
             string num; 
             cin >> num;

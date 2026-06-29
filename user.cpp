@@ -31,6 +31,10 @@ struct User {
         this->Hashpass = Hashpass ;
     }
 
+    void erase(int idx){
+        id.erase(id.begin() + idx);
+    }
+
     bool operator== (const User &U) const{
         return (codeMelli == U.codeMelli);
     }
@@ -78,6 +82,10 @@ class USER_Core{
             read_users();
         }
 
+        vector<string> AccList(int idx){
+            return Users[idx].id;
+        }
+
         void SignUP(string &codeMelli, string &pass){
             if(!isValid(codeMelli)){
                 cout << "Error: Invalid national code." << '\n';
@@ -106,6 +114,35 @@ class USER_Core{
             }
             cout << "Error: User not found." << '\n';
             return -1;
+        }
+        void AccAdd(int idx, string &name){
+            Users[idx].id.push_back(name);
+            write_users();
+        }
+        int AccIDX(int idx, string &name){
+            for(int i = 0, sz = Users[idx].id.size(); i < sz; i++){
+                if(Users[idx].id[i] == name){
+                    return i;
+                }
+            }
+            return -1;
+        }
+        void RmvAcc(int idx, int idx2){
+            if(idx2 == -1){
+                return;
+            }
+            Users[idx].erase(idx2);
+            write_users();
+        }
+        bool RmvUser(int idx, string &pass){
+            if(!compare(Users[idx].Hashpass, pass)){
+                cout << "Error: Wrong user password." << '\n';
+                return false;
+            }
+            Users.erase(Users.begin() + idx);
+            cout << "User deleted." << '\n';
+            write_users();
+            return true;
         }
 
         ~USER_Core(){}
@@ -157,6 +194,9 @@ bool isbad(string Str){
     Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF");
 }
 string runAdmin(const vector<string>& inputs){
+    if(inputs.size() == 0){
+        return "";
+    }
     if(inputs.size() != 1 || inputs[0] != "EOF"){
         for(auto &v : inputs){
             if(isbad(v)){
@@ -205,6 +245,20 @@ string runAdmin(const vector<string>& inputs){
     close(outpipe[0]);
     waitpid(pid, nullptr, 0);
     return result;
+}
+
+vector<string> Translate(string &result){
+    vector<string> Res;
+    Res.push_back("");
+    for(auto c : result){
+        if(c > 32){
+            Res[Res.size() - 1] += c;
+        }
+        else if(Res.back() != ""){
+            Res.push_back("");
+        }
+    }
+    return Res;
 }
 
 int main(){
@@ -275,6 +329,7 @@ int main(){
         }
         else if(cmd == "open_account"){
             string pass;
+            cout << "Enter account password: " << endl;
             cin >> pass;
             if(User_idx == -1){
                 cout << "Error: No user logged in." << endl;
@@ -283,7 +338,89 @@ int main(){
             payload.push_back("create_account_op");
             payload.push_back(to_string(10001));
             payload.push_back(pass);
+            result = runAdmin(payload);
+            cout << result << endl;
+            string id = "";
+            for(int i = 0, sz = (int)result.size(); i < sz; i++){
+                if(result[i] >= '0' && result[i] <= '9'){
+                    for(int j = i; j < 19 + i; j++){
+                        id += result[j];
+                    }
+                    break;
+                }
+            }
+            Ucore.AccAdd(User_idx, id);
+        }
+        else if(cmd == "my_accounts"){
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            vector<string> Accs = Ucore.AccList(User_idx);
+            for(auto &name : Accs){
+                payload.push_back("get_balance_op");
+                payload.push_back(name);
+            }
             cout << runAdmin(payload) << endl;
         }
+        else if(cmd == "delete_my_account"){
+            string pass, name;
+            cin >> name;
+            cout << "Enter account password: " << endl;
+            cin >> pass;
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            payload.push_back("get_balance_op");
+            payload.push_back(name);
+            result = runAdmin(payload);
+            payload.clear();
+            auto Res = Translate(result);
+            bool f1 = 0;
+            for(auto &str : Res){
+                if(str == "Error:"){
+                    f1 = 1;
+                    break;
+                }
+            }
+            if(f1){
+                cout << result << endl;
+                continue;
+            }
+            if(Res[3][0] != '0'){
+                cout << "Error: Account balance is positive" << endl;
+                continue;
+            }
+            int Acc_idx = Ucore.AccIDX(User_idx, name);
+            if(Acc_idx == -1){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            payload.push_back("delete_account_op");
+            payload.push_back(name);
+            payload.push_back(pass);
+            result = runAdmin(payload);
+            cout << result << endl; 
+            Ucore.RmvAcc(User_idx, Acc_idx);           
+        }
+        else if(cmd == "delete_my_user"){
+            string pass;
+            cout << "Enter user password: " << endl;
+            cin >> pass;
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            if(Ucore.AccList(User_idx).size() != 0){
+                cout << "Error: User has accounts." << endl;
+                continue;
+            }
+            if(Ucore.RmvUser(User_idx, pass)){
+                User_idx = -1;
+            }
+            cout << endl;
+        }
     }
+    //Ucore.write_users();
 }
