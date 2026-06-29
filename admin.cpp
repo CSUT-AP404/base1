@@ -406,7 +406,8 @@ class Core{
             transferFee = 0.00;
             balanceInquiryFee = 0.00 ;
             read();//load
-            read_fee();
+            read_setting();
+            read_users();
         }
         
         ld Get_Transfer_Fee(){
@@ -444,7 +445,7 @@ class Core{
             transferFee = amount;
             cout << fixed << setprecision(2) ; 
             cout << "Transfer fee set to " << amount << '\n';
-            write_fee();
+            write_setting();
         }
 
         void set_balance_inquiry_fee(ld amount){
@@ -455,7 +456,7 @@ class Core{
             balanceInquiryFee = amount;
             cout << fixed << setprecision(2) ; 
             cout << "Balance inquiry fee set to " << amount << '\n';
-            write_fee(); 
+            write_setting(); 
         }
 
         void Create_Account(int Branch_Id, string &Pass){
@@ -783,20 +784,23 @@ class Core{
             string is_sure;
             cin >> is_sure;
             if(is_sure == "yes"){
+                Users.clear();
                 Branches.clear();
                 FAccounts.clear();
                 BAccounts.clear();
                 Trans.clear();
                 Account_Cnt = 0;
                 Trans_Cnt = 1001;
-                remove("BankـData.json");
+                write();
+                write_setting();
+                write_users(); 
                 cout << "All data cleared." << '\n';
             }
             else{
                 cout << "Cancelled." << '\n';
             }
         }
-    
+    /*--------------------------------------------------*/
     void read(){
         ifstream inFile("BankـData.json");
         if(!inFile.is_open()){
@@ -953,27 +957,71 @@ class Core{
         outFile << j.dump(4);
         outFile.close();
     }
-
-    void read_fee() {
-        ifstream file("data/fee.json");
-        if(file.is_open()){
-            json j;
-            file >> j;
-            if(j.contains("transfer_fee"))
-                transferFee = j["transfer_fee"];
-            if(j.contains("balance_inquiry_fee")) 
-                balanceInquiryFee = j["balance_inquiry_fee"];
-            file.close();
+    /*--------------------------------------------------*/
+    void read_setting() {
+        ifstream inFile("data/setting.json");
+        if(!inFile.is_open()){
+            return;
         }
+        json j;
+        inFile >> j;
+        if(j.contains("transfer_fee"))
+            transferFee = j["transfer_fee"];
+        if(j.contains("balance_inquiry_fee")) 
+            balanceInquiryFee = j["balance_inquiry_fee"];
+        inFile.close();
     }
-    void write_fee(){
+    void write_setting(){
         json j;
         j["transfer_fee"] = transferFee;
         j["balance_inquiry_fee"] = balanceInquiryFee;
-        ofstream file("data/fee.json");
-        file << j.dump(4);
-        file.close();
+        ofstream inFile("data/setting.json");
+        inFile << j.dump(4);
+        inFile.close();
     }
+    /*--------------------------------------------------*/
+    void read_users() {
+        ifstream inFile("Users.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("users")){
+            for(auto &userr : j["users"]){
+                User u;
+                u.codeMelli = userr["codeMelli"];
+                u.pass = userr["pass"];
+                for(auto &acc : userr["accounts"]){
+                    u.id.push_back(acc);
+                }
+                Users.push_back(u);
+            }
+        }
+        inFile.close();
+        
+    }
+
+    void write_users() {
+        json j;
+        json jUsers = json::array();
+        for(auto &userr : Users){
+            json jAccs = json::array();
+            for(auto &acc : userr.id){
+                jAccs.push_back(acc);
+            }
+            jUsers.push_back({
+                {"codeMelli", userr.codeMelli},
+                {"pass", userr.pass},
+                {"accounts", jAccs}
+            });
+        }
+        j["users"] = jUsers;
+        ofstream inFile("Users.json");
+        inFile << j.dump(4);
+        inFile.close();
+    }
+
 };
 /*------------------------------------------------------------------*/
 
