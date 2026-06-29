@@ -972,6 +972,20 @@ class Core{
     }
 };
 /*------------------------------------------------------------------*/
+bool isAccNumber(string &name){
+    if(name.size() != 19){
+        return false;
+    }
+    for(int i = 0; i < 19; i++){
+        if((i == 4 || i == 9 || i == 14) && name[i] != '-'){
+            return false;
+        }
+        else if(i != 4 && i != 9 && i != 14 && (name[i] < '0' || name[i] > '9')){
+            return false;
+        }
+    }
+    return true;
+}
 
 int main(){
     ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
@@ -1013,6 +1027,10 @@ int main(){
             cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
+            if(!isAccNumber(id)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Close_Account(pass, id);
             continue ; 
         }
@@ -1022,6 +1040,10 @@ int main(){
             cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
+            if(!isAccNumber(id)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Delete_Account(pass, id);
             continue ; 
         }
@@ -1039,6 +1061,10 @@ int main(){
             cin >> id;
             string pass;
             cin >> pass;
+            if(!isAccNumber(id)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Close_Account(pass, id);
             continue ; 
         }
@@ -1047,6 +1073,10 @@ int main(){
             cin >> id;
             string pass;
             cin >> pass;
+            if(!isAccNumber(id)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Delete_Account(pass, id);
             continue ; 
         }
@@ -1079,6 +1109,10 @@ int main(){
                 cout << "Error: Amount must be positive." << '\n';
                 continue;
             }
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Deposit(num, val);
             continue ; 
         }
@@ -1091,6 +1125,10 @@ int main(){
             cin >> pass;
             if(val <= 0){
                 cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
                 continue;
             }
             core.WITHDRAWAL(num, pass, val);
@@ -1107,6 +1145,14 @@ int main(){
                 cout << "Error: Amount must be positive." << '\n';
                 continue;
             }
+            if(!isAccNumber(from)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
+            if(!isAccNumber(to)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
         }
@@ -1119,6 +1165,10 @@ int main(){
             cin >> pass;
             if(val <= 0){
                 cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
                 continue;
             }
             core.WITHDRAWAL(num, pass, val);
@@ -1134,6 +1184,14 @@ int main(){
                 cout << "Error: Amount must be positive." << '\n';
                 continue;
             }
+            if(!isAccNumber(from)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
+            if(!isAccNumber(to)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
         }
@@ -1141,6 +1199,10 @@ int main(){
         else if(cmd == "get_balance"){
             string num; 
             cin >> num;
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.get_balance(num);
             continue ; 
         }
@@ -1148,6 +1210,10 @@ int main(){
         else if(cmd == "get_balance_op"){
             string num; 
             cin >> num;
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.get_balance(num, 1);
             continue ; 
         }
@@ -1155,6 +1221,10 @@ int main(){
         else if(cmd == "get_history"){
             string num; 
             cin >> num;
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.get_history(num);
             continue ; 
         }
@@ -1167,6 +1237,10 @@ int main(){
         else if(cmd == "clear_history"){
             string num; 
             cin >> num;
+            if(!isAccNumber(num)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
             core.clear_history(num);
             continue ; 
         }
