@@ -786,7 +786,7 @@ class Core{
         }
     /*--------------------------------------------------*/
     void read(){
-        ifstream inFile("BankـData.json");
+        ifstream inFile("data/BankـData.json");
         if(!inFile.is_open()){
             return;
         }
@@ -937,7 +937,7 @@ class Core{
         j["Account_Cnt"] = Account_Cnt;
         j["Trans_Cnt"]   = Trans_Cnt;
 
-        ofstream outFile("BankـData.json");
+        ofstream outFile("data/BankـData.json");
         outFile << j.dump(4);
         outFile.close();
     }
