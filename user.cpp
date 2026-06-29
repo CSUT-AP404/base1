@@ -214,11 +214,26 @@ int main(){
         cout << "Error: Core system has some bug" << endl;
         return 1;
     }
+    /*---------------------------------Making sure we have a branch*/
+    vector<string> payload;
+    payload.push_back("list_branches");
+    string result = runAdmin(payload);
+    payload.clear();
+    bool is_there_branch = 0;
+    for(auto c : result){
+        is_there_branch |= (c > 32);         // is there any branches
+    }
+    if(!is_there_branch){
+        payload.push_back("create_branch ");
+        payload.push_back("\"Main Branch\"");
+        runAdmin(payload);
+    }
+    /*-----------------------------------*/
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
     while(cin >> cmd){
-        vector<string> payload;
+        payload.clear();
         if(cmd == "EOF"){
             payload.push_back("EOF");
             runAdmin(payload);
@@ -265,7 +280,10 @@ int main(){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-            
+            payload.push_back("create_account_op");
+            payload.push_back(to_string(10001));
+            payload.push_back(pass);
+            cout << runAdmin(payload) << endl;
         }
     }
 }
