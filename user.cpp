@@ -16,6 +16,30 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
+
+
+struct User {
+    vector<string> id;
+    string codeMelli;
+    string pass;
+    User(){}
+    User(string codeMelli, string pass){
+        this->codeMelli = codeMelli ;
+        this->pass = pass ;
+    }
+};
+
+/*  
+    add this in your core
+    private : 
+        vector<User> Users; 
+    public :
+        core(){
+        // i mean you have to add this in your constructor 
+            read_users();
+        }
+*/
+
 bool isbad(string Str){
     return (Str == "reset_all" || Str == "clear_history" || Str == "set_balance_inquiry_fee" || Str == "show_fees" || 
     Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF");
