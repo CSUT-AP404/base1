@@ -102,7 +102,7 @@ string runAdmin(const vector<string>& inputs){
 
 
 void read_users() {
-        ifstream inFile("Users.json");
+        ifstream inFile("data/Users.json");
         if(!inFile.is_open()){
             return;
         }
@@ -138,7 +138,7 @@ void read_users() {
             });
         }
         j["users"] = jUsers;
-        ofstream inFile("Users.json");
+        ofstream inFile("data/Users.json");
         inFile << j.dump(4);
         inFile.close();
     }
