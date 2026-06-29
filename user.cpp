@@ -95,6 +95,56 @@ string runAdmin(const vector<string>& inputs){
     return result;
 }
 
+
+/*
+    This two fuctions are for the Json 
+*/
+
+
+void read_users() {
+        ifstream inFile("Users.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("users")){
+            for(auto &userr : j["users"]){
+                User u;
+                u.codeMelli = userr["codeMelli"];
+                u.pass = userr["pass"];
+                for(auto &acc : userr["accounts"]){
+                    u.id.push_back(acc);
+                }
+                Users.push_back(u);
+            }
+        }
+        inFile.close();
+        
+    }
+
+    void write_users() {
+        json j;
+        json jUsers = json::array();
+        for(auto &userr : Users){
+            json jAccs = json::array();
+            for(auto &acc : userr.id){
+                jAccs.push_back(acc);
+            }
+            jUsers.push_back({
+                {"codeMelli", userr.codeMelli},
+                {"pass", userr.pass},
+                {"accounts", jAccs}
+            });
+        }
+        j["users"] = jUsers;
+        ofstream inFile("Users.json");
+        inFile << j.dump(4);
+        inFile.close();
+    }
+
+/*------------------------------------------------------------------*/
+
 int main(){
     ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     int compile_status = system("g++ admin.cpp -o admin");

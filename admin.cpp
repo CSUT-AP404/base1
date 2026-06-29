@@ -394,7 +394,6 @@ class Core{
             balanceInquiryFee = 0.00 ;
             read();//load
             read_setting();
-            read_users();
         }
         
         ld Get_Transfer_Fee(){
@@ -771,7 +770,6 @@ class Core{
             string is_sure;
             cin >> is_sure;
             if(is_sure == "yes"){
-                Users.clear();
                 Branches.clear();
                 FAccounts.clear();
                 BAccounts.clear();
@@ -780,7 +778,6 @@ class Core{
                 Trans_Cnt = 1001;
                 write();
                 write_setting();
-                write_users(); 
                 cout << "All data cleared." << '\n';
             }
             else{
@@ -966,49 +963,6 @@ class Core{
         inFile << j.dump(4);
         inFile.close();
     }
-    /*--------------------------------------------------*/
-    void read_users() {
-        ifstream inFile("Users.json");
-        if(!inFile.is_open()){
-            return;
-        }
-        json j;
-        inFile >> j;
-        if(j.contains("users")){
-            for(auto &userr : j["users"]){
-                User u;
-                u.codeMelli = userr["codeMelli"];
-                u.pass = userr["pass"];
-                for(auto &acc : userr["accounts"]){
-                    u.id.push_back(acc);
-                }
-                Users.push_back(u);
-            }
-        }
-        inFile.close();
-        
-    }
-
-    void write_users() {
-        json j;
-        json jUsers = json::array();
-        for(auto &userr : Users){
-            json jAccs = json::array();
-            for(auto &acc : userr.id){
-                jAccs.push_back(acc);
-            }
-            jUsers.push_back({
-                {"codeMelli", userr.codeMelli},
-                {"pass", userr.pass},
-                {"accounts", jAccs}
-            });
-        }
-        j["users"] = jUsers;
-        ofstream inFile("Users.json");
-        inFile << j.dump(4);
-        inFile.close();
-    }
-
 };
 /*------------------------------------------------------------------*/
 
