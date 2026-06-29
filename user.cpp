@@ -340,16 +340,8 @@ int main(){
             payload.push_back(pass);
             result = runAdmin(payload);
             cout << result << endl;
-            string id = "";
-            for(int i = 0, sz = (int)result.size(); i < sz; i++){
-                if(result[i] >= '0' && result[i] <= '9'){
-                    for(int j = i; j < 19 + i; j++){
-                        id += result[j];
-                    }
-                    break;
-                }
-            }
-            Ucore.AccAdd(User_idx, id);
+            auto Res = Translate(result);
+            Ucore.AccAdd(User_idx, Res[3]);
         }
         else if(cmd == "my_accounts"){
             if(User_idx == -1){

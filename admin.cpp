@@ -40,7 +40,7 @@ struct Account_Id{
     }
     Account_Id (const string &ID){
         string tmp = "";
-        for(int i = 0, j = 0; i < 19; i++){
+        for(int i = 0, j = 0, sz = (int)ID.size(); i < sz; i++){
             if(ID[i] == '-'){
                 n[j++] = stoi(tmp);
                 tmp = "";
@@ -270,11 +270,18 @@ class Account{
             return AI;
         }
         string getIDStr() const {
-            string s = "";
+            string res = "";
             for(int i = 0; i < 4; i++){
-                s += to_string(AI[i]);
+                string Tmp = to_string(AI[i]);
+                for(int j = 0, sz = (int)Tmp.size(); j < sz - 4; j++){
+                    res += '0';
+                }
+                res += Tmp;
+                if(i != 3){
+                    res += '-';
+                }
             }
-            return s;
+            return res;
         }
 
         void pushHistory(const Transaction &T){
@@ -667,7 +674,9 @@ class Core{
                         break;
                     }
                 }
-                if(idx == -1){ cout << "Error: Account not found." << '\n'; return; }
+                if(idx == -1){ 
+                    cout << "Error: Account not found." << '\n'; return;
+                 }
                 give_balance(idx, 1);
             }
         }
@@ -973,14 +982,8 @@ class Core{
 };
 /*------------------------------------------------------------------*/
 bool isAccNumber(string &name){
-    if(name.size() != 19){
-        return false;
-    }
-    for(int i = 0; i < 19; i++){
-        if((i == 4 || i == 9 || i == 14) && name[i] != '-'){
-            return false;
-        }
-        else if(i != 4 && i != 9 && i != 14 && (name[i] < '0' || name[i] > '9')){
+    for(int i = 0, sz = (int)name.size(); i < sz; i++){
+        if(name[i] != '-' && (name[i] < '0' || name[i] > '9')){
             return false;
         }
     }
