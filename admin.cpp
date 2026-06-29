@@ -422,7 +422,6 @@ class Core{
             cout << "Transfer fee: " << transferFee << '\n';
             cout << "Balance inquiry fee: " << balanceInquiryFee << '\n';
         }
-
         void set_transfer_fee(ld amount){
             if(amount < 0){
                 cout << "Error: Invalid fee amount." << '\n';
@@ -433,7 +432,6 @@ class Core{
             cout << "Transfer fee set to " << amount << '\n';
             write_setting();
         }
-
         void set_balance_inquiry_fee(ld amount){
             if(amount < 0){
                 cout << "Error: Invalid fee amount." << '\n';
@@ -1018,6 +1016,32 @@ int main(){
             core.Delete_Account(pass, id);
             continue ; 
         }
+        /*--------------------------*/
+        else if(cmd == "create_account_op"){
+            int num; 
+            cin >> num;
+            string pass;
+            cin >> pass;
+            core.Create_Account(num,pass);
+            continue ; 
+        }
+        else if(cmd == "close_account_op"){
+            string id; 
+            cin >> id;
+            string pass;
+            cin >> pass;
+            core.Close_Account(pass, id);
+            continue ; 
+        }
+        else if(cmd == "delete_account_op"){
+            string id; 
+            cin >> id;
+            string pass;
+            cin >> pass;
+            core.Delete_Account(pass, id);
+            continue ; 
+        }
+        /*--------------------------*/
         else if(cmd == "list_accounts"){
             core.Account_List();
             continue ; 
@@ -1077,6 +1101,34 @@ int main(){
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
         }
+        /*----------------------------*/
+        else if(cmd == "withdraw_op"){
+            string num; 
+            double val;
+            cin >> num >> val;
+            string pass;
+            cin >> pass;
+            if(val <= 0){
+                cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            core.WITHDRAWAL(num, pass, val);
+            continue ; 
+        }
+        else if(cmd == "transfer_op"){
+            string from, to; 
+            double val;
+            cin >> from >> to >> val;
+            string pass;
+            cin >> pass;
+            if(val <= 0){
+                cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
+            continue ; 
+        }
+        /*----------------------------*/
         else if(cmd == "get_balance"){
             string num; 
             cin >> num;
