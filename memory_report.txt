@@ -1,4 +1,5 @@
 Memory Usage Report
+Command used: ./run_tests.sh
 =========================================
 Input File           | Max RAM (KB)   
 -------------------- | ---------------
