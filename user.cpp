@@ -396,6 +396,37 @@ int main(){
             cout << result << endl; 
             Ucore.RmvAcc(User_idx, Acc_idx);           
         }
+		else if (cmd == "deposit_to"){
+
+		}
+		else if (cmd == "withdraw_from"){
+            
+        }
+		else if (cmd == "send_money"){
+            
+		}
+		else if (cmd == "balance_inquiry"){
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+			string account_id;
+			cin >> account_id;
+            vector<string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto &name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << endl;
+            }
+            payload.push_back("get_balance");
+			payload.push_back(account_id);
+			result = runAdmin(payload);
+			cout << result << endl;
+		}
         else if(cmd == "delete_my_user"){
             string pass;
             cout << "Enter user password: " << endl;
