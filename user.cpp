@@ -401,11 +401,11 @@ int main(){
             cin >> account_id;
             double amount;
             cin >> amount;
-            if (User_idx == -1){
+            /*if (User_idx == -1){ there is no need to be logged in in order to doing this operation
                 cout << "Error: No user logged in." << endl;
                 continue;
-            }
-            vector <string> Accs = Ucore.AccList(User_idx);
+            }*/
+            /*vector <string> Accs = Ucore.AccList(User_idx); the account does not necessarily belong to user
             bool belong_to = false;
             for (auto& name : Accs){
                 if (name == account_id){
@@ -415,7 +415,7 @@ int main(){
             if (!belong_to){
                 cout << "Error: Accont does not belong to user." << endl;
                 continue;
-            }
+            }*/
             payload.push_back("deposit_op");
             payload.push_back(account_id);
             payload.push_back(to_string(amount));
@@ -423,13 +423,17 @@ int main(){
             cout << result << endl;
         }
 		else if (cmd == "withdraw_from"){
+            string account_id;
+            double amount;
+            cin >> account_id;
+            cin >> amount;
+            cout << "Enter account password: ";
+            string password;
+            cin >> password;
             if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-            string account_id;
-            double amount;
-            cin >> account_id;
             vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
@@ -441,21 +445,25 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
-            cin >> amount;
             payload.push_back("withdraw_op");
             payload.push_back(account_id);
             payload.push_back(to_string(amount));
+            payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
         }
 		else if (cmd == "send_money"){
+            double amount;
+            string from_acc, to_acc;
+            cin >> from_acc;
+            cin >> from_acc >> amount;
+            cout << "Enter account password: ";
+            string password;
+            cin >> password;
             if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-            double amount;
-            string from_acc, to_acc;
-            cin >> from_acc;
             vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
@@ -467,21 +475,21 @@ int main(){
                 cout << "Error: source Account does not belong to user." << endl;
                 continue;
             }
-            cin >> from_acc >> amount;
             payload.push_back("transfer_op");
             payload.push_back(from_acc);
             payload.push_back(to_acc);
             payload.push_back(to_string(amount));
+            payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
 		}
 		else if (cmd == "balance_inquiry"){
+			string account_id;
+			cin >> account_id;
             if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-			string account_id;
-			cin >> account_id;
             vector<string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto &name : Accs){
