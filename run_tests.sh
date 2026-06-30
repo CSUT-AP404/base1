@@ -1,5 +1,9 @@
 #!/bin/bash
 
+rm -f data/Bank_Data.json
+rm -f data/setting.json
+rm -f data/Users.json
+
 CPP_FILE="user.cpp"
 BINARY="./user"
 
@@ -30,6 +34,9 @@ for input_file in big_tests/*.in; do
 done
 
 rm -f temp_time.txt
+rm -f data/Bank_Data.json
+rm -f data/setting.json
+rm -f data/Users.json
 
 echo "========================================="
 echo "Done! Report saved in memory_report.txt"
