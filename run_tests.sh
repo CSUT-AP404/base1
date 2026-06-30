@@ -14,9 +14,8 @@ fi
 echo "Compilation successful. Running tests..."
 echo "========================================="
 
-echo "Memory Usage Report" > memory_report.txt
+echo "Memory Usage Report (Command used: ./run_tests.sh)" > memory_report.txt
 echo "=========================================" >> memory_report.txt
-echo "Command used: ./run_tests.sh" > memory_report.txt
 printf "%-20s | %-15s\n" "Input File" "Max RAM (KB)" >> memory_report.txt
 printf "%-20s | %-15s\n" "--------------------" "---------------" >> memory_report.txt
 
