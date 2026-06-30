@@ -397,8 +397,31 @@ int main(){
             Ucore.RmvAcc(User_idx, Acc_idx);           
         }
 		else if (cmd == "deposit_to"){
-
-		}
+             if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            string account_id;
+            cin >> account_id;
+            vector <string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Accont does not belong to user." << endl;
+                continue;
+            }
+            double amount;
+            cin >> amount;
+            payload.push_back("deposit");
+            payload.push_back(account_id);
+            payload.push_back(amount);
+            string result = runAdmin(payload);
+            cout << result << endl;
+        }
 		else if (cmd == "withdraw_from"){
             if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
@@ -407,7 +430,7 @@ int main(){
             string account_id;
             double amount;
             cin >> account_id;
-            vector<string> Accs = Ucore.AccList(User_idx);
+            vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
                 if (name == account_id){
@@ -419,7 +442,11 @@ int main(){
                 continuel
             }
             cin >> amount;
-            
+            payload.push_back("withdraw");
+            payload.push_back(account_id);
+            payload.push_back(amount);
+            result = runAdmin(payload);
+            cout << result << endl;
         }
 		else if (cmd == "send_money"){
             if (User_idx == -1){
@@ -429,7 +456,7 @@ int main(){
             double amount;
             string from_acc, to_acc;
             cin >> from_acc;
-            vector<string> Accs = Ucore.AccList(User_idx);
+            vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
                 if (name == from_acc){
