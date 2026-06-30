@@ -40,3 +40,5 @@ rm -f data/Users.json
 
 echo "========================================="
 echo "Done! Report saved in memory_report.txt"
+
+rm -f data/Bank_Data.json

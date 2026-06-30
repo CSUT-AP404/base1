@@ -1,0 +1,9 @@
+Memory Usage Report (Command used: ./run_tests.sh)
+=========================================
+Input File           | Max RAM (KB)   
+-------------------- | ---------------
+big_tests/big_01_signup_open_accounts.in | 368956          KB
+big_tests/big_02_public_deposits.in | 368932          KB
+big_tests/big_03_transfers_balance_withdrawals.in | 368796          KB
+big_tests/big_04_error_paths.in | 368964          KB
+big_tests/big_05_delete_cleanup.in | 368988          KB
