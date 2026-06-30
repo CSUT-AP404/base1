@@ -401,22 +401,7 @@ int main(){
             cin >> account_id;
             double amount;
             cin >> amount;
-            /*if (User_idx == -1){ there is no need to be logged in in order to doing this operation
-                cout << "Error: No user logged in." << endl;
-                continue;
-            }*/
-            /*vector <string> Accs = Ucore.AccList(User_idx); the account does not necessarily belong to user
-            bool belong_to = false;
-            for (auto& name : Accs){
-                if (name == account_id){
-                    belong_to = true;
-                }
-            }
-            if (!belong_to){
-                cout << "Error: Accont does not belong to user." << endl;
-                continue;
-            }*/
-            payload.push_back("deposit_op");
+            payload.push_back("deposit");
             payload.push_back(account_id);
             payload.push_back(to_string(amount));
             string result = runAdmin(payload);
@@ -427,7 +412,7 @@ int main(){
             double amount;
             cin >> account_id;
             cin >> amount;
-            cout << "Enter account password: ";
+            cout << "Enter account password: " << endl;
             string password;
             cin >> password;
             if (User_idx == -1){
@@ -455,9 +440,8 @@ int main(){
 		else if (cmd == "send_money"){
             double amount;
             string from_acc, to_acc;
-            cin >> from_acc;
-            cin >> from_acc >> amount;
-            cout << "Enter account password: ";
+            cin >> from_acc >> to_acc >> amount;
+            cout << "Enter account password: " << endl;
             string password;
             cin >> password;
             if (User_idx == -1){

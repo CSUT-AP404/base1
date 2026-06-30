@@ -630,7 +630,7 @@ class Core{
                     return;
                 }
                 if(SPECIAL == 0){
-                    Transaction T("Bank inquiry fee", Trans_Cnt++, -balanceInquiryFee, FAccounts[idx].getCoin() - balanceInquiryFee, 
+                    Transaction T("Balance inquiry fee", Trans_Cnt++, -balanceInquiryFee, FAccounts[idx].getCoin() - balanceInquiryFee, 
                     FAccounts[idx].getIDStr(), "Bank");
                     FAccounts[idx].WITHDRAWAL(balanceInquiryFee, T);
                     cout << "Balance inquiry fee: " << balanceInquiryFee << '\n';
@@ -643,6 +643,7 @@ class Core{
                 else{
                     cout << FAccounts[idx].getIDStr() << " | " << "Balance: " << FAccounts[idx].getCoin() << '\n';
                 }
+                write();
                 return;
             }     
             if(SPECIAL == 0){   
@@ -996,6 +997,7 @@ int main(){
     string cmd;
     while(cin >> cmd){
         if(cmd=="EOF"){
+            core.write();
             exit(0);
         }
         else if(cmd == "create_branch"){
