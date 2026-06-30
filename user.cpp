@@ -397,12 +397,14 @@ int main(){
             Ucore.RmvAcc(User_idx, Acc_idx);           
         }
 		else if (cmd == "deposit_to"){
-             if (User_idx == -1){
+            string account_id;
+            cin >> account_id;
+            double amount;
+            cin >> amount;
+            if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-            string account_id;
-            cin >> account_id;
             vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
@@ -414,11 +416,9 @@ int main(){
                 cout << "Error: Accont does not belong to user." << endl;
                 continue;
             }
-            double amount;
-            cin >> amount;
-            payload.push_back("deposit");
+            payload.push_back("deposit_op");
             payload.push_back(account_id);
-            payload.push_back(amount);
+            payload.push_back(to_string(amount));
             string result = runAdmin(payload);
             cout << result << endl;
         }
@@ -439,12 +439,12 @@ int main(){
             }
             if (!belong_to){
                 cout << "Error: Account does not belong to user." << endl;
-                continuel
+                continue;
             }
             cin >> amount;
-            payload.push_back("withdraw");
+            payload.push_back("withdraw_op");
             payload.push_back(account_id);
-            payload.push_back(amount);
+            payload.push_back(to_string(amount));
             result = runAdmin(payload);
             cout << result << endl;
         }
@@ -465,13 +465,13 @@ int main(){
             }
             if (!belong_to){
                 cout << "Error: source Account does not belong to user." << endl;
-                continue
+                continue;
             }
             cin >> from_acc >> amount;
-            payload.push_back("transfer");
+            payload.push_back("transfer_op");
             payload.push_back(from_acc);
             payload.push_back(to_acc);
-            payload.push_back(amount);
+            payload.push_back(to_string(amount));
             result = runAdmin(payload);
             cout << result << endl;
 		}
