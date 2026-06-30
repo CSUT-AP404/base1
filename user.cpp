@@ -400,10 +400,53 @@ int main(){
 
 		}
 		else if (cmd == "withdraw_from"){
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            string account_id;
+            double amount;
+            cin >> account_id;
+            vector<string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << endl;
+                continuel
+            }
+            cin >> amount;
             
         }
 		else if (cmd == "send_money"){
-            
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            double amount;
+            string from_acc, to_acc;
+            cin >> from_acc;
+            vector<string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == from_acc){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: source Account does not belong to user." << endl;
+                continue
+            }
+            cin >> from_acc >> amount;
+            payload.push_back("transfer");
+            payload.push_back(from_acc);
+            payload.push_back(to_acc);
+            payload.push_back(amount);
+            result = runAdmin(payload);
+            cout << result << endl;
 		}
 		else if (cmd == "balance_inquiry"){
             if (User_idx == -1){
@@ -421,6 +464,7 @@ int main(){
             }
             if (!belong_to){
                 cout << "Error: Account does not belong to user." << endl;
+                continue;
             }
             payload.push_back("get_balance");
 			payload.push_back(account_id);
