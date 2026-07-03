@@ -354,53 +354,64 @@ struct Request{
 
     ~Request (){}
 };
-class Branch{
-    private:
-        vector<Account_Id> AIs;
-    public:
-        string name;
-        int Id;
+struct Branch{
+    vector<string> AIs;
+    vector<Request> Requests;
+    string name;
+    int Id;
     
-        Branch (string name, int Id){
-            this -> name = name;
-            this -> Id = Id;
-        }
+    Branch (string name, int Id){
+        this -> name = name;
+        this -> Id = Id;
+    }
 
-        bool operator== (const Branch &B) const{
-            return (Id == B.Id);
-        }
-        bool operator!= (const Branch &B) const{
-            return (Id != B.Id);
-        }
-        bool operator< (const Branch &B) const{
-            return (Id < B.Id);
-        }
-        bool operator<= (const Branch &B) const{
-            return (Id <= B.Id);
-        }
-        bool operator> (const Branch &B) const{
-            return (Id > B.Id);
-        }
-        bool operator>= (const Branch &B) const{
-            return (Id >= B.Id);
-        }
+    bool operator== (const Branch &B) const{
+        return (Id == B.Id);
+    }
+    bool operator!= (const Branch &B) const{
+        return (Id != B.Id);
+    }
+    bool operator< (const Branch &B) const{
+        return (Id < B.Id);
+    }
+    bool operator<= (const Branch &B) const{
+        return (Id <= B.Id);
+    }
+    bool operator> (const Branch &B) const{
+        return (Id > B.Id);
+    }
+    bool operator>= (const Branch &B) const{
+        return (Id >= B.Id);
+    }
 
-        friend ostream& operator<< (ostream &O, const Branch &B);
+    friend ostream& operator<< (ostream &O, const Branch &B);
 
-        void Add_Account(Account_Id A){
-            AIs.push_back(A);
+    void Add_Request(const Request &R){
+        Requests.push_back(R);
+    }
+    int RequestIDX(int Id){
+        for(int i = 0, sz = (int)Requests.size(); i < sz; i++){
+            if(Requests[i].id == Id){
+                return i;
+            }
         }
+        return -1;
+    }
         
-        Branch& operator= (const Branch &B){
-            name = B.name;
-            Id = B.Id;
-            return (*this);
-        }
-        Branch (const Branch &B){
-            name = B.name;
-            Id = B.Id;
-        }
-        ~Branch (){}
+    Branch& operator= (const Branch &B){
+        name = B.name;
+        Id = B.Id;
+        AIs = B.AIs;
+        Requests = B.Requests;
+        return (*this);
+    }
+    Branch (const Branch &B){
+        name = B.name;
+        Id = B.Id;
+        AIs = B.AIs;
+        Requests = B.Requests;
+    }
+    ~Branch (){}
 };
 ostream& operator<< (ostream &O, const Branch &B){
     O << B.Id << " | " << B.name;
@@ -492,18 +503,21 @@ class Core{
 
         void Create_Account(int Branch_Id, string &Pass){
             bool found = false;
-            for(auto &B : Branches){
-                if(B.Id == Branch_Id){
-                    found = true; 
+            int idx = -1;
+            for(int i = 0, sz = (int)Branches.size(); i < sz; i++){
+                if(Branches[i].Id == Branch_Id){
+                    found = true;
+                    idx = i;
                     break;
                 }
             }   
             if(!found){ 
-                cout << "The branch doesnt exist" << '\n'; 
+                cout << "Error: The branch doesnt exist" << '\n'; 
                 return; 
             }
             FAccounts.push_back(Account (BankID, Account_Cnt++, Branch_Id, Hasher(Pass)));
             cout << "Account created. Number: " << FAccounts.back().getID() << '\n';
+            Branches[idx].AIs.push_back(FAccounts.back().getIDStr());
             write();
         }
         void Close_Account(string &Pass, string &ID){
@@ -857,7 +871,7 @@ class Core{
         
         
         for(auto &item : j["Branches"]){
-            Branches.push_back(Branch(item["name"], item["id"]));
+            Branches.push_back(Branch(item["name"], item["id"]));             // Moshkel
         }
 
         for(auto &item : j["active_accounts"]){
@@ -916,14 +930,13 @@ class Core{
             Trans.push_back(T);
         }
     }
-    /*--------------------------------------------------*/
     void write(){
         json j;
-        json jBranches = json::array();
+        json jBranches = json::array();            // Moshkel
         for(auto &B : Branches){
             jBranches.push_back({
                 {"id",   B.Id},
-                {"name", B.name}
+                {"name", B.name}            
             });
         }
         j["Branches"] = jBranches;
