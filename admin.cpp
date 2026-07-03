@@ -983,10 +983,23 @@ class Core{
 };
 /*------------------------------------------------------------------*/
 bool isAccNumber(string &name){
+    vector<int> idx;
     for(int i = 0, sz = (int)name.size(); i < sz; i++){
         if(name[i] != '-' && (name[i] < '0' || name[i] > '9')){
             return false;
         }
+        else if(name[i] == '-'){
+            idx.push_back(i);
+            if((int)idx.size() > 3){
+                return false;
+            }
+        }
+    }
+    if((int)idx.size() != 3){
+        return false;
+    }
+    if(idx[0] == 0 || idx[2] == (int)name.size() - 1 || idx[1] == idx[0] + 1 || idx[2] == idx[1] + 1){
+        return false;
     }
     return true;
 }
