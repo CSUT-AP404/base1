@@ -318,6 +318,42 @@ class Account{
         ~Account (){}//*/
 };
 /*---------------------------------------------------------*/
+struct Request{
+    string owner, Time, reason;
+    int id, Branch_Id, status;
+
+    Request (string owner, int id, int status, int Branch_Id){
+        this -> owner = owner;
+        this -> id = id;
+        this -> status = status;
+        this -> Branch_Id = Branch_Id;
+        Time = GetTime();
+    }
+    string GetStatus() const{
+        if(!status){
+            return "PENDING";
+        }
+        if(status == 1){
+            return "APPROVED";
+        }
+        if(status == 2){
+            return "CANCELLED";
+        }
+        return "REJECTED";
+    }
+
+    bool operator== (const Request &R) const{
+        return (id == R.id);
+    }
+    bool operator!= (const Request &R) const{
+        return (id == R.id);
+    }
+    bool operator< (const Request &R) const{
+        return (id < R.id);
+    }
+
+    ~Request (){}
+};
 class Branch{
     private:
         vector<Account_Id> AIs;
@@ -419,6 +455,10 @@ class Core{
             write();//save
         }
         void List_Branch(){
+            if(Branches.empty()){
+                cout << "Error: No branches available" << '\n';
+                return;
+            }
             for(auto &B : Branches){
                 cout << B << '\n';
             }
