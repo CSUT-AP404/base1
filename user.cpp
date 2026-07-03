@@ -49,7 +49,7 @@ struct Request{
         return (id == R.id);
     }
     bool operator!= (const Request &R) const{
-        return (id == R.id);
+        return (id != R.id);
     }
     bool operator< (const Request &R) const{
         return (id < R.id);
