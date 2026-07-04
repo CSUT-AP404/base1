@@ -318,53 +318,100 @@ class Account{
         ~Account (){}//*/
 };
 /*---------------------------------------------------------*/
-class Branch{
-    private:
-        vector<Account_Id> AIs;
-    public:
-        string name;
-        int Id;
+struct Request{
+    string owner, Time, reason;
+    int id, Branch_Id, status;
+
+    Request (string owner, int id, int status, int Branch_Id){
+        this -> owner = owner;
+        this -> id = id;
+        this -> status = status;
+        this -> Branch_Id = Branch_Id;
+        Time = GetTime();
+    }
+    string GetStatus() const{
+        if(!status){
+            return "PENDING";
+        }
+        if(status == 1){
+            return "APPROVED";
+        }
+        if(status == 2){
+            return "CANCELLED";
+        }
+        return "REJECTED";
+    }
+
+    bool operator== (const Request &R) const{
+        return (id == R.id);
+    }
+    bool operator!= (const Request &R) const{
+        return (id != R.id);
+    }
+    bool operator< (const Request &R) const{
+        return (id < R.id);
+    }
+
+    ~Request (){}
+};
+struct Branch{
+    vector<string> AIs;
+    vector<Request> Requests;
+    string name;
+    int Id;
     
-        Branch (string name, int Id){
-            this -> name = name;
-            this -> Id = Id;
-        }
+    Branch (string name, int Id){
+        this -> name = name;
+        this -> Id = Id;
+    }
 
-        bool operator== (const Branch &B) const{
-            return (Id == B.Id);
-        }
-        bool operator!= (const Branch &B) const{
-            return (Id != B.Id);
-        }
-        bool operator< (const Branch &B) const{
-            return (Id < B.Id);
-        }
-        bool operator<= (const Branch &B) const{
-            return (Id <= B.Id);
-        }
-        bool operator> (const Branch &B) const{
-            return (Id > B.Id);
-        }
-        bool operator>= (const Branch &B) const{
-            return (Id >= B.Id);
-        }
+    bool operator== (const Branch &B) const{
+        return (Id == B.Id);
+    }
+    bool operator!= (const Branch &B) const{
+        return (Id != B.Id);
+    }
+    bool operator< (const Branch &B) const{
+        return (Id < B.Id);
+    }
+    bool operator<= (const Branch &B) const{
+        return (Id <= B.Id);
+    }
+    bool operator> (const Branch &B) const{
+        return (Id > B.Id);
+    }
+    bool operator>= (const Branch &B) const{
+        return (Id >= B.Id);
+    }
 
-        friend ostream& operator<< (ostream &O, const Branch &B);
+    friend ostream& operator<< (ostream &O, const Branch &B);
 
-        void Add_Account(Account_Id A){
-            AIs.push_back(A);
+    void Add_Request(const Request &R){
+        Requests.push_back(R);
+    }
+    int RequestIDX(int Id){
+        for(int i = 0, sz = (int)Requests.size(); i < sz; i++){
+            if(Requests[i].id == Id){
+                return i;
+            }
         }
+        return -1;
+    }
         
-        Branch& operator= (const Branch &B){
-            name = B.name;
-            Id = B.Id;
-            return (*this);
-        }
-        Branch (const Branch &B){
-            name = B.name;
-            Id = B.Id;
-        }
-        ~Branch (){}
+    Branch& operator= (const Branch &B){
+        name = B.name;
+        Id = B.Id;
+        AIs = B.AIs;
+        Requests = B.Requests;
+        return (*this);
+    }
+    Branch (const Branch &B){
+        name = B.name;
+        Id = B.Id;
+        AIs = B.AIs;
+        Requests = B.Requests;
+    }
+    ~Branch (){}
 };
 ostream& operator<< (ostream &O, const Branch &B){
     O << B.Id << " | " << B.name;
@@ -419,6 +466,10 @@ class Core{
             write();//save
         }
         void List_Branch(){
+            if(Branches.empty()){
+                cout << "Error: No branches available" << '\n';
+                return;
+            }
             for(auto &B : Branches){
                 cout << B << '\n';
             }
@@ -452,18 +503,21 @@ class Core{
 
         void Create_Account(int Branch_Id, string &Pass){
             bool found = false;
-            for(auto &B : Branches){
-                if(B.Id == Branch_Id){
-                    found = true; 
+            int idx = -1;
+            for(int i = 0, sz = (int)Branches.size(); i < sz; i++){
+                if(Branches[i].Id == Branch_Id){
+                    found = true;
+                    idx = i;
                     break;
                 }
             }   
             if(!found){ 
-                cout << "The branch doesnt exist" << '\n'; 
+                cout << "Error: The branch doesnt exist" << '\n'; 
                 return; 
             }
             FAccounts.push_back(Account (BankID, Account_Cnt++, Branch_Id, Hasher(Pass)));
             cout << "Account created. Number: " << FAccounts.back().getID() << '\n';
+            Branches[idx].AIs.push_back(FAccounts.back().getIDStr());
             write();
         }
         void Close_Account(string &Pass, string &ID){
@@ -817,7 +871,7 @@ class Core{
         
         
         for(auto &item : j["Branches"]){
-            Branches.push_back(Branch(item["name"], item["id"]));
+            Branches.push_back(Branch(item["name"], item["id"]));             // Moshkel
         }
 
         for(auto &item : j["active_accounts"]){
@@ -876,14 +930,13 @@ class Core{
             Trans.push_back(T);
         }
     }
-    /*--------------------------------------------------*/
     void write(){
         json j;
-        json jBranches = json::array();
+        json jBranches = json::array();            // Moshkel
         for(auto &B : Branches){
             jBranches.push_back({
                 {"id",   B.Id},
-                {"name", B.name}
+                {"name", B.name}            
             });
         }
         j["Branches"] = jBranches;
@@ -983,10 +1036,23 @@ class Core{
 };
 /*------------------------------------------------------------------*/
 bool isAccNumber(string &name){
+    vector<int> idx;
     for(int i = 0, sz = (int)name.size(); i < sz; i++){
         if(name[i] != '-' && (name[i] < '0' || name[i] > '9')){
             return false;
         }
+        else if(name[i] == '-'){
+            idx.push_back(i);
+            if((int)idx.size() > 3){
+                return false;
+            }
+        }
+    }
+    if((int)idx.size() != 3){
+        return false;
+    }
+    if(idx[0] == 0 || idx[2] == (int)name.size() - 1 || idx[1] == idx[0] + 1 || idx[2] == idx[1] + 1){
+        return false;
     }
     return true;
 }

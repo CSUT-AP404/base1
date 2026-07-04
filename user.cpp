@@ -21,6 +21,42 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
+struct Request{
+    string owner, Time, reason;
+    int id, Branch_Id, status;
+
+    Request (string owner, int id, int status, int Branch_Id){
+        this -> owner = owner;
+        this -> id = id;
+        this -> status = status;
+        this -> Branch_Id = Branch_Id;
+        Time = GetTime();
+    }
+    string GetStatus() const{
+        if(!status){
+            return "PENDING";
+        }
+        if(status == 1){
+            return "APPROVED";
+        }
+        if(status == 2){
+            return "CANCELLED";
+        }
+        return "REJECTED";
+    }
+
+    bool operator== (const Request &R) const{
+        return (id == R.id);
+    }
+    bool operator!= (const Request &R) const{
+        return (id != R.id);
+    }
+    bool operator< (const Request &R) const{
+        return (id < R.id);
+    }
+
+    ~Request (){}
+};
 struct User {
     vector<string> id;
     string codeMelli;
@@ -268,21 +304,8 @@ int main(){
         cout << "Error: Core system has some bug" << endl;
         return 1;
     }
-    /*---------------------------------Making sure we have a branch*/
     vector<string> payload;
-    payload.push_back("list_branches");
-    string result = runAdmin(payload);
-    payload.clear();
-    bool is_there_branch = 0;
-    for(auto c : result){
-        is_there_branch |= (c > 32);         // is there any branches
-    }
-    if(!is_there_branch){
-        payload.push_back("create_branch ");
-        payload.push_back("\"Main Branch\"");
-        runAdmin(payload);
-    }
-    /*-----------------------------------*/
+    string result;
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
@@ -327,6 +350,12 @@ int main(){
             User_idx = -1;
             cout << "Logged out" << endl;
         }
+        else if(cmd == "list_branches"){
+            payload.push_back("list_branches");
+            cout << runAdmin(payload);
+        }
+        /*----------------------------------------------------------*/
+        /*-----------------------construction zone-------------------------------*/
         else if(cmd == "open_account"){
             string pass;
             cout << "Enter account password: " << endl;
@@ -343,6 +372,8 @@ int main(){
             auto Res = Translate(result);
             Ucore.AccAdd(User_idx, Res[3]);
         }
+        /*----------------------------------------------------------*/
+        /*----------------------------------------------------------*/
         else if(cmd == "my_accounts"){
             if(User_idx == -1){
                 cout << "Error: No user logged in." << endl;
