@@ -176,7 +176,7 @@ string GetTime(){
     if((int)Sec.size() == 1){
         Time += '0';
     }
-    Time += Min;
+    Time += Sec; // moshkel (it used to be minute, which seemed wrong, so changed it to second)
     return Time; 
 }
 struct Transaction{
@@ -869,18 +869,24 @@ class Core{
         Account_Cnt = j["Account_Cnt"];
         Trans_Cnt   = j["Trans_Cnt"];
 
-        
+
         for(auto &item : j["Branches"]){
-                Branch B(item["name"], item["id"]);
+            Branch B(item["name"], item["id"]);
+            if(item.contains("accounts")){
                 for(auto &acc : item["accounts"]){
-                    B.AIs.push_back(acc);
+                    B.AIs.push_back(acc.get<string>());
                 }
+            }
+            if(item.contains("requests")){
                 for(auto &b : item["requests"]){
-                    Request R(b["owner"], b["id"], b["status"], b["Branch_Id"]);
-                    R.Time = b["time"];
-                    R.reason = b["reason"];
+                    Request R(b["owner"].get<string>(), b["id"].get<int>(), b["status"].get<int>(), b["Branch_Id"].get<int>());
+                    R.Time = b["time"].get<string>();
+                    if(b.contains("reason")){
+                        R.reason = b["reason"].get<string>();
+                    }
                     B.Add_Request(R);
                 }
+            }
             Branches.push_back(B);
         }
 
