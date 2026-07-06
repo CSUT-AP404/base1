@@ -21,6 +21,16 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
+
+
+bool compareUsers(const User &a, const User &b) {
+    if(a.score != b.score) {
+        return a.score > b.score;
+    }
+    return a.signup_time < b.signup_time;
+}
+
+
 struct Request{
     string owner, Time, reason;
     int id, Branch_Id, status;
@@ -61,10 +71,15 @@ struct User {
     vector<string> id;
     string codeMelli;
     string Hashpass;
+    int score = 0;
+    string signup_time;
+
     User(){}
     User(string codeMelli, string Hashpass){
         this->codeMelli = codeMelli ;
         this->Hashpass = Hashpass ;
+        this->score = 0;
+        this->signup_time = GetTime();
     }
 
     void erase(int idx){
@@ -77,6 +92,7 @@ struct User {
 
     ~User(){}
 };
+
 
 string Hasher(string pass){
     return picosha2::hash256_hex_string(pass);
@@ -180,6 +196,42 @@ class USER_Core{
             write_users();
             return true;
         }
+        void changeScore(int idx, int amount) {
+            if (idx >= 0 && idx < (int)Users.size()) {
+                Users[idx].score += amount;
+                if (Users[idx].score < 0) Users[idx].score = 0;
+                write_users();
+            }
+        }
+
+        string getLevel(int score) {
+            if(score <= 4) 
+                return "Bronze";
+            if(score <= 9) 
+                return "Silver";
+            if(score <= 14) 
+                return "Gold";
+            return "Diamond";
+        }
+
+        void ptrRank(int idx) {
+            if(idx < 0 || idx >= (int)Users.size()){
+                return;
+            }
+            vector<User> sortedUsers = Users;
+            sort(sortedUsers.begin(), sortedUsers.end(), compareUsers);
+            
+            int rank = 1;
+            for(int i = 0; i < (int)sortedUsers.size(); i++) {
+                if(sortedUsers[i].codeMelli == Users[idx].codeMelli) {
+                    rank = i + 1;
+                    break;
+                }
+            }
+            cout << "Rank : " << rank << endl;
+            cout << "Score: " << Users[idx].score << endl;
+            cout << "Level: " << getLevel(Users[idx].score) << endl;
+        }
 
         ~USER_Core(){}
 
@@ -195,6 +247,8 @@ class USER_Core{
                 User u;
                 u.codeMelli = userr["codeMelli"];
                 u.Hashpass = userr["pass"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }
@@ -202,8 +256,8 @@ class USER_Core{
             }
         }
         inFile.close();
-        
     }
+
     void write_users() {
         json j;
         json jUsers = json::array();
@@ -215,6 +269,8 @@ class USER_Core{
             jUsers.push_back({
                 {"codeMelli", userr.codeMelli},
                 {"pass", userr.Hashpass},
+                {"score", userr.score},
+                {"signup_time", userr.signup_time},
                 {"accounts", jAccs}
             });
         }
@@ -223,6 +279,7 @@ class USER_Core{
         inFile << j.dump(4);
         inFile.close();
     }
+
 };
 
 bool isbad(string Str){
