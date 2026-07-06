@@ -21,6 +21,44 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
+
+string GetTime(){
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    string Time = to_string(1900 + ltm->tm_year) + '-';
+    // added +1 to month
+    string Month = to_string(ltm->tm_mon + 1); 
+    if((int)Month.size() == 1){
+        Time += '0';
+    }
+    Time += Month;
+    Time += '-';
+    string Day = to_string(ltm->tm_mday);
+    if((int)Day.size() == 1){
+        Time += '0';
+    }
+    Time += Day;
+    Time += ' ';
+    string Hour = to_string(ltm->tm_hour);
+    if((int)Hour.size() == 1){
+        Time += '0';
+    }
+    Time += Hour;
+    Time += ':';
+    string Min = to_string(ltm->tm_min);
+    if((int)Min.size() == 1){
+        Time += '0';
+    }
+    Time += Min;
+    Time += ':';
+    string Sec = to_string(ltm->tm_sec);
+    if((int)Sec.size() == 1){
+        Time += '0';
+    }
+    Time += Sec;
+    return Time; 
+};
+
 struct Request{
     string owner, Time, reason;
     int id, Branch_Id, status;
@@ -61,10 +99,15 @@ struct User {
     vector<string> id;
     string codeMelli;
     string Hashpass;
+    int score = 0;
+    string signup_time;
+
     User(){}
     User(string codeMelli, string Hashpass){
         this->codeMelli = codeMelli ;
         this->Hashpass = Hashpass ;
+        this->score = 0;
+        this->signup_time = GetTime();
     }
 
     void erase(int idx){
@@ -77,6 +120,15 @@ struct User {
 
     ~User(){}
 };
+
+
+bool compareUsers(const User &a, const User &b) {
+    if(a.score != b.score) {
+        return a.score > b.score;
+    }
+    return a.signup_time < b.signup_time;
+}
+
 
 string Hasher(string pass){
     return picosha2::hash256_hex_string(pass);
@@ -180,6 +232,42 @@ class USER_Core{
             write_users();
             return true;
         }
+        void changeScore(int idx, int amount) {
+            if (idx >= 0 && idx < (int)Users.size()) {
+                Users[idx].score += amount;
+                if (Users[idx].score < 0) Users[idx].score = 0;
+                write_users();
+            }
+        }
+
+        string getLevel(int score) {
+            if(score <= 4) 
+                return "Bronze";
+            if(score <= 9) 
+                return "Silver";
+            if(score <= 14) 
+                return "Gold";
+            return "Diamond";
+        }
+
+        void ptrRank(int idx) {
+            if(idx < 0 || idx >= (int)Users.size()){
+                return;
+            }
+            vector<User> sortedUsers = Users;
+            sort(sortedUsers.begin(), sortedUsers.end(), compareUsers);
+            
+            int rank = 1;
+            for(int i = 0; i < (int)sortedUsers.size(); i++) {
+                if(sortedUsers[i].codeMelli == Users[idx].codeMelli) {
+                    rank = i + 1;
+                    break;
+                }
+            }
+            cout << "Rank : " << rank << endl;
+            cout << "Score: " << Users[idx].score << endl;
+            cout << "Level: " << getLevel(Users[idx].score) << endl;
+        }
 
         ~USER_Core(){}
 
@@ -195,6 +283,8 @@ class USER_Core{
                 User u;
                 u.codeMelli = userr["codeMelli"];
                 u.Hashpass = userr["pass"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }
@@ -202,8 +292,8 @@ class USER_Core{
             }
         }
         inFile.close();
-        
     }
+
     void write_users() {
         json j;
         json jUsers = json::array();
@@ -215,6 +305,8 @@ class USER_Core{
             jUsers.push_back({
                 {"codeMelli", userr.codeMelli},
                 {"pass", userr.Hashpass},
+                {"score", userr.score},
+                {"signup_time", userr.signup_time},
                 {"accounts", jAccs}
             });
         }
@@ -223,6 +315,7 @@ class USER_Core{
         inFile << j.dump(4);
         inFile.close();
     }
+
 };
 
 bool isbad(string Str){
@@ -368,11 +461,86 @@ int main(){
             payload.push_back(to_string(10001));
             payload.push_back(pass);
             result = runAdmin(payload);
+
+            if(!result.starts_with("Error:")){
+                auto Res = Translate(result);
+                Ucore.AccAdd(User_idx, Res[3]);
+                Ucore.changeScore(User_idx, 3);
+            }
+
             cout << result << endl;
-            auto Res = Translate(result);
-            Ucore.AccAdd(User_idx, Res[3]);
         }
-        /*----------------------------------------------------------*/
+        /*---------------------------export_history-------------------------------*/
+        else if(cmd == "export_history"){
+            string account_number;
+            cin >> account_number;
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            payload.push_back("get_balance_op");
+            payload.push_back(account_number);
+            string checkResult = runAdmin(payload);
+            payload.clear();
+            if(checkResult.rfind("Error:", 0) == 0){
+                cout << checkResult;
+                continue;
+            }
+            vector<string> Accs = Ucore.AccList(User_idx);
+            bool check = false;
+            for(auto &name : Accs){
+                if(name == account_number){
+                    check = true;
+                    break;
+                }
+            }
+            if(!check){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            payload.push_back("get_history");
+            payload.push_back(account_number);
+            result = runAdmin(payload);
+            string filename = "history_" + account_number + ".csv";
+            ofstream outFile(filename);
+            outFile << "id,timestamp,type,amount,balance_after\n";
+            int start = 0;
+            int siz = result.size();
+            while(start < siz){
+                int end = start;
+                while(end < siz && result[end] != '\n'){
+                    end++;
+                }
+                string line = result.substr(start, end-start);
+                if(line != ""){
+                    vector<string> parts;
+                    int prev = 0;
+                    int pos = 0;
+                    while((pos = line.find(" | ", prev)) != -1){
+                        parts.push_back(line.substr(prev, pos - prev));
+                        prev = pos + 3;
+                    }
+                    parts.push_back(line.substr(prev));
+
+                    if(parts.size() == 5){
+                        string id = parts[0];
+                        string timestamp = parts[1];
+                        string type = parts[2];
+                        string amount = parts[3];
+                        string balance = parts[4].substr(9);
+
+                        outFile << id << "," << timestamp << "," << type << "," << amount << "," << balance << "\n";
+                    }
+                }
+
+                start = end + 1;
+            }
+
+            outFile.close();
+            cout << "History exported to " << filename << endl;
+
+        }
+
         /*----------------------------------------------------------*/
         else if(cmd == "my_accounts"){
             if(User_idx == -1){
@@ -425,7 +593,12 @@ int main(){
             payload.push_back(pass);
             result = runAdmin(payload);
             cout << result << endl; 
-            Ucore.RmvAcc(User_idx, Acc_idx);           
+
+            if (!result.starts_with("Error:")) {
+                Ucore.RmvAcc(User_idx, Acc_idx);
+                Ucore.changeScore(User_idx, -2);    
+            }
+      
         }
 		else if (cmd == "deposit_to"){
             string account_id;
@@ -437,6 +610,11 @@ int main(){
             payload.push_back(to_string(amount));
             string result = runAdmin(payload);
             cout << result << endl;
+
+            if (!result.starts_with("Error:") && User_idx != -1) {
+                Ucore.changeScore(User_idx, 1);
+            }
+
         }
 		else if (cmd == "withdraw_from"){
             string account_id;
@@ -467,6 +645,11 @@ int main(){
             payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
+
+            if (!result.starts_with("Error:")){
+                Ucore.changeScore(User_idx, 1);
+            }
+
         }
 		else if (cmd == "send_money"){
             double amount;
@@ -497,6 +680,10 @@ int main(){
             payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
+            if (!result.starts_with("Error:")) {
+                Ucore.changeScore(User_idx, 2);
+            }
+
 		}
 		else if (cmd == "balance_inquiry"){
 			string account_id;
@@ -520,7 +707,17 @@ int main(){
 			payload.push_back(account_id);
 			result = runAdmin(payload);
 			cout << result << endl;
+            if (!result.starts_with("Error:")){
+                Ucore.changeScore(User_idx, 1); 
+            }
 		}
+        else if(cmd == "my_rank"){
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            Ucore.ptrRank(User_idx);
+        }
         else if(cmd == "delete_my_user"){
             string pass;
             cout << "Enter user password: " << endl;

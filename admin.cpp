@@ -148,7 +148,8 @@ string GetTime(){
     time_t now = time(0);
     tm *ltm = localtime(&now);
     string Time = to_string(1900 + ltm->tm_year) + '-';
-    string Month = to_string(ltm->tm_mon);
+    // added +1 to month
+    string Month = to_string(ltm->tm_mon + 1); 
     if((int)Month.size() == 1){
         Time += '0';
     }
@@ -178,7 +179,9 @@ string GetTime(){
     }
     Time += Sec; // moshkel (it used to be minute, which seemed wrong, so changed it to second)
     return Time; 
-}
+};
+
+
 struct Transaction{
     string Type;
     int ID;
