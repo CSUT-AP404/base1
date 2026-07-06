@@ -372,7 +372,77 @@ int main(){
             auto Res = Translate(result);
             Ucore.AccAdd(User_idx, Res[3]);
         }
-        /*----------------------------------------------------------*/
+        /*---------------------------export_history-------------------------------*/
+        else if(cmd == "export_history"){
+            string account_number;
+            cin >> account_number;
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            payload.push_back("get_balance_op");
+            payload.push_back(account_number);
+            string checkResult = runAdmin(payload);
+            payload.clear();
+            if(checkResult.rfind("Error:", 0) == 0){
+                cout << checkResult;
+                continue;
+            }
+            vector<string> Accs = Ucore.AccList(User_idx);
+            bool check = false;
+            for(auto &name : Accs){
+                if(name == account_number){
+                    check = true;
+                    break;
+                }
+            }
+            if(!check){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            payload.push_back("get_history");
+            payload.push_back(account_number);
+            result = runAdmin(payload);
+            string filename = "history_" + account_number + ".csv";
+            ofstream outFile(filename);
+            outFile << "id,timestamp,type,amount,balance_after\n";
+            int start = 0;
+            int siz = result.size();
+            while(start < siz){
+                int end = start;
+                while(end < siz && result[end] != '\n'){
+                    end++;
+                }
+                string line = result.substr(start, end-start);
+                if(line != ""){
+                    vector<string> parts;
+                    int prev = 0;
+                    int pos = 0;
+                    while((pos = line.find(" | ", prev)) != -1){
+                        parts.push_back(line.substr(prev, pos - prev));
+                        prev = pos + 3;
+                    }
+                    parts.push_back(line.substr(prev));
+
+                    if(parts.size() == 5){
+                        string id = parts[0];
+                        string timestamp = parts[1];
+                        string type = parts[2];
+                        string amount = parts[3];
+                        string balance = parts[4].substr(9);
+
+                        outFile << id << "," << timestamp << "," << type << "," << amount << "," << balance << "\n";
+                    }
+                }
+
+                start = end + 1;
+            }
+
+            outFile.close();
+            cout << "History exported to " << filename << endl;
+
+        }
+
         /*----------------------------------------------------------*/
         else if(cmd == "my_accounts"){
             if(User_idx == -1){
