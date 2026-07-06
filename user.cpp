@@ -22,14 +22,41 @@ typedef long double ld;
 #define all(x) (x).begin(), (x).end()
 
 
-
-bool compareUsers(const User &a, const User &b) {
-    if(a.score != b.score) {
-        return a.score > b.score;
+string GetTime(){
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    string Time = to_string(1900 + ltm->tm_year) + '-';
+    string Month = to_string(ltm->tm_mon);
+    if((int)Month.size() == 1){
+        Time += '0';
     }
-    return a.signup_time < b.signup_time;
-}
-
+    Time += Month;
+    Time += '-';
+    string Day = to_string(ltm->tm_mday);
+    if((int)Day.size() == 1){
+        Time += '0';
+    }
+    Time += Day;
+    Time += ' ';
+    string Hour = to_string(ltm->tm_hour);
+    if((int)Hour.size() == 1){
+        Time += '0';
+    }
+    Time += Hour;
+    Time += ':';
+    string Min = to_string(ltm->tm_min);
+    if((int)Min.size() == 1){
+        Time += '0';
+    }
+    Time += Min;
+    Time += ':';
+    string Sec = to_string(ltm->tm_sec);
+    if((int)Sec.size() == 1){
+        Time += '0';
+    }
+    Time += Sec;
+    return Time; 
+};
 
 struct Request{
     string owner, Time, reason;
@@ -92,6 +119,14 @@ struct User {
 
     ~User(){}
 };
+
+
+bool compareUsers(const User &a, const User &b) {
+    if(a.score != b.score) {
+        return a.score > b.score;
+    }
+    return a.signup_time < b.signup_time;
+}
 
 
 string Hasher(string pass){
@@ -425,9 +460,14 @@ int main(){
             payload.push_back(to_string(10001));
             payload.push_back(pass);
             result = runAdmin(payload);
+
+            if(!result.starts_with("Error:")){
+                auto Res = Translate(result);
+                Ucore.AccAdd(User_idx, Res[3]);
+                Ucore.changeScore(User_idx, 3);
+            }
+
             cout << result << endl;
-            auto Res = Translate(result);
-            Ucore.AccAdd(User_idx, Res[3]);
         }
         /*---------------------------export_history-------------------------------*/
         else if(cmd == "export_history"){
@@ -552,7 +592,12 @@ int main(){
             payload.push_back(pass);
             result = runAdmin(payload);
             cout << result << endl; 
-            Ucore.RmvAcc(User_idx, Acc_idx);           
+
+            if (!result.starts_with("Error:")) {
+                Ucore.RmvAcc(User_idx, Acc_idx);
+                Ucore.changeScore(User_idx, -2);    
+            }
+      
         }
 		else if (cmd == "deposit_to"){
             string account_id;
@@ -564,6 +609,11 @@ int main(){
             payload.push_back(to_string(amount));
             string result = runAdmin(payload);
             cout << result << endl;
+
+            if (!result.starts_with("Error:") && User_idx != -1) {
+                Ucore.changeScore(User_idx, 1);
+            }
+
         }
 		else if (cmd == "withdraw_from"){
             string account_id;
@@ -594,6 +644,11 @@ int main(){
             payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
+
+            if (!result.starts_with("Error:")){
+                Ucore.changeScore(User_idx, 1);
+            }
+
         }
 		else if (cmd == "send_money"){
             double amount;
@@ -624,6 +679,10 @@ int main(){
             payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
+            if (!result.starts_with("Error:")) {
+                Ucore.changeScore(User_idx, 2);
+            }
+
 		}
 		else if (cmd == "balance_inquiry"){
 			string account_id;
@@ -647,7 +706,17 @@ int main(){
 			payload.push_back(account_id);
 			result = runAdmin(payload);
 			cout << result << endl;
+            if (!result.starts_with("Error:")){
+                Ucore.changeScore(User_idx, 1); 
+            }
 		}
+        else if(cmd == "my_rank"){
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            Ucore.ptrRank(User_idx);
+        }
         else if(cmd == "delete_my_user"){
             string pass;
             cout << "Enter user password: " << endl;

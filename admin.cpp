@@ -178,7 +178,8 @@ string GetTime(){
     }
     Time += Sec; // moshkel (it used to be minute, which seemed wrong, so changed it to second)
     return Time; 
-}
+};
+
 struct Transaction{
     string Type;
     int ID;
