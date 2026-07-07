@@ -1122,7 +1122,7 @@ int main(){
         else if(cmd == "is_branch_op"){
             ll id;
             cin >> id;
-            cout << core.
+            cout << core.isBranch(id) << '\n';
         }
         /*-------------------------------------------*/
         /*------------------Accounts-----------------------*/
