@@ -26,6 +26,7 @@ string GetTime(){
     time_t now = time(0);
     tm *ltm = localtime(&now);
     string Time = to_string(1900 + ltm->tm_year) + '-';
+    // added +1 to month
     string Month = to_string(ltm->tm_mon + 1); 
     if((int)Month.size() == 1){
         Time += '0';
@@ -94,7 +95,7 @@ struct Request{
 
     ~Request (){}
 };
-struct User{
+struct User {
     vector<string> id;
     string codeMelli;
     string Hashpass;
