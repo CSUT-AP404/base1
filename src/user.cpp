@@ -3,8 +3,8 @@
 #include <sys/wait.h>
 #include <sstream>
 #include <stdexcept>
-#include "include/picosha2.h"
-#include "data/json.hpp"
+#include "../include/picosha2.h"
+#include "../include/json.hpp"
 #include <ctime>
 #include <fstream>
 using namespace std;
@@ -243,7 +243,7 @@ class USER_Core{
         ~USER_Core(){}
 
     void read_users() {
-        ifstream inFile("data/Users.json");
+        ifstream inFile("../data/Users.json");
         if(!inFile.is_open()){
             return;
         }
@@ -289,7 +289,7 @@ class USER_Core{
             });
         }
         j["users"] = jUsers;
-        ofstream inFile("data/Users.json");
+        ofstream inFile("../data/Users.json");
         inFile << j.dump(4);
         inFile.close();
     }

@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
 #include <ctime>
 #include <fstream>
-#include "include/picosha2.h"
-#include "data/json.hpp"
+#include "../include/picosha2.h"
+#include "../include/json.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -1069,7 +1069,7 @@ class Core{
         }
     /*--------------------------------------------------*/
     void read(){
-        ifstream inFile("data/BankـData.json");
+        ifstream inFile("../data/BankـData.json");
         if(!inFile.is_open()){
             return;
         }
@@ -1248,13 +1248,13 @@ class Core{
         j["Trans_Cnt"]   = Trans_Cnt;
         j["Request_Cnt"] = Request_Cnt;
 
-        ofstream outFile("data/BankـData.json");
+        ofstream outFile("../data/BankـData.json");
         outFile << j.dump(4);
         outFile.close();
     }
     /*--------------------------------------------------*/
     void read_setting() {
-        ifstream inFile("data/setting.json");
+        ifstream inFile("../data/setting.json");
         if(!inFile.is_open()){
             return;
         }
@@ -1270,7 +1270,7 @@ class Core{
         json j;
         j["transfer_fee"] = transferFee;
         j["balance_inquiry_fee"] = balanceInquiryFee;
-        ofstream inFile("data/setting.json");
+        ofstream inFile("../data/setting.json");
         inFile << j.dump(4);
         inFile.close();
     }
