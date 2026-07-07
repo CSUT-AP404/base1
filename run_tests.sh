@@ -4,8 +4,8 @@ rm -f data/Bank_Data.json
 rm -f data/setting.json
 rm -f data/Users.json
 
-CPP_FILE="user.cpp"
-BINARY="./user"
+CPP_FILE="src/user.cpp"
+BINARY="./src/user"
 
 echo "Compiling $CPP_FILE..."
 g++ -O3 "$CPP_FILE" -o "$BINARY"
