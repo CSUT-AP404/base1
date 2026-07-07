@@ -127,6 +127,15 @@ class USER_Core{
             } 
             return (controlDigit == (11 - remainder));
         }
+        string getLevel(int score) {
+            if(score <= 4) 
+                return "Bronze";
+            if(score <= 9) 
+                return "Silver";
+            if(score <= 14) 
+                return "Gold";
+            return "Diamond";
+        }
     public :
         USER_Core(){
             read_users();
@@ -211,15 +220,6 @@ class USER_Core{
                 if (Users[idx].score < 0) Users[idx].score = 0;
                 write_users();
             }
-        }
-        string getLevel(int score) {
-            if(score <= 4) 
-                return "Bronze";
-            if(score <= 9) 
-                return "Silver";
-            if(score <= 14) 
-                return "Gold";
-            return "Diamond";
         }
         void ptrRank(int idx) {
             if(idx < 0 || idx >= (int)Users.size()){

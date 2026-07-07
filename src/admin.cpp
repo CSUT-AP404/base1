@@ -491,10 +491,43 @@ bool compare(string pass, string input){
         return true ;
     return false ; 
 }
+/*----------------------------------------------------------------------*/
+struct User {
+    vector<int> Request_Ids;
+    vector<string> id;
+    string codeMelli;
+    string Hashpass;
+    int score = 0;
+    string signup_time;
 
+    User(){}
+    User(string codeMelli, string Hashpass){
+        this->codeMelli = codeMelli ;
+        this->Hashpass = Hashpass ;
+        this->score = 0;
+        this->signup_time = GetTime();
+    }
 
+    void erase(int idx){
+        id.erase(id.begin() + idx);
+    }
+
+    bool operator== (const User &U) const{
+        return (codeMelli == U.codeMelli);
+    }
+    bool operator< (const User &U) const{
+        if(score != U.score){
+            return score > U.score;
+        }
+        return signup_time < U.signup_time;
+    }
+
+    ~User(){}
+};
+/*----------------------------------------------------------------------*/
 class Core{
     private:
+        vector<User> Users;
         vector<Branch> Branches;
         vector<Account> FAccounts;
         vector<Account> BAccounts;
@@ -535,6 +568,15 @@ class Core{
             }
             return res;
         }
+        string getLevel(int score) {
+            if(score <= 4) 
+                return "Bronze";
+            if(score <= 9) 
+                return "Silver";
+            if(score <= 14) 
+                return "Gold";
+            return "Diamond";
+        }
     public:
         int BankID;
 
@@ -547,6 +589,7 @@ class Core{
             balanceInquiryFee = 0.00 ;
             read();//load
             read_setting();
+            read_users();
         }
         
         ld Get_Transfer_Fee(){
@@ -1067,6 +1110,15 @@ class Core{
                 cout << "Cancelled." << '\n';
             }
         }
+
+        void show_ranking(){
+            vector<User> sortedUsers = Users;
+            sort(sortedUsers.begin(), sortedUsers.end());
+            for(int i = 0, sz = (int)Users.size(); i < sz; i++){
+                cout << i + 1 << " | " << Users[i].codeMelli << " | " << Users[i].score << 
+                " | " << getLevel(Users[i].score) << '\n';
+            }
+        }
     /*--------------------------------------------------*/
     void read(){
         ifstream inFile("../data/BankـData.json");
@@ -1272,6 +1324,32 @@ class Core{
         j["balance_inquiry_fee"] = balanceInquiryFee;
         ofstream inFile("../data/setting.json");
         inFile << j.dump(4);
+        inFile.close();
+    }
+    /*--------------------------------------------------*/
+    void read_users() {
+        ifstream inFile("../data/Users.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("users")){
+            for(auto &userr : j["users"]){
+                User u;
+                u.codeMelli = userr["codeMelli"];
+                u.Hashpass = userr["pass"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
+                for(auto &acc : userr["accounts"]){
+                    u.id.push_back(acc);
+                }
+                for(auto &req : userr["request_ids"]){
+                    u.Request_Ids.push_back(req);
+                }
+                Users.push_back(u);
+            }
+        }
         inFile.close();
     }
 };
@@ -1577,6 +1655,12 @@ int main(){
             }
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
+        }
+        /*-----------------------------------------------------------------------*/
+        /*----------------------------Ranking------------------------------------*/
+        else if(cmd == "show_ranking"){
+            core.show_ranking();
+            continue;
         }
         /*-----------------------------------------------------------------------*/
         /*----------------------------History---------------------------------------*/
