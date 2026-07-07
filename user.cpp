@@ -475,17 +475,39 @@ int main(){
             }
         }
         else if(cmd == "cancel_request"){
-            
-        }
-        else if(cmd == "activate_account"){
-
+            ll req_Id;
+            cin >> req_Id;
             if(User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-
-            /*payload.push_back("create_account_op");
-            payload.push_back(branch_id);
+            payload.push_back("cancel_request_op");
+            payload.push_back(Ucore.UserCode(User_idx));
+            payload.push_back(to_string(req_Id));
+            cout << runAdmin(payload) << endl;
+        }
+        else if(cmd == "activate_account"){
+            string pass;
+            ll req_Id;
+            cin >> req_Id;
+            cout << "Enter account password: " << endl;
+            cin >> pass;
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            payload.push_back("is_request_usable_op");
+            payload.push_back(Ucore.UserCode(User_idx));
+            payload.push_back(to_string(req_Id));
+            result = runAdmin(payload);
+            payload.clear();
+            if(isError(result)){
+                cout << result << endl;
+                continue;
+            }
+            auto Res = Translate(result);
+            payload.push_back("create_account_op");
+            payload.push_back(Res[2]);
             payload.push_back(pass);
             result = runAdmin(payload);
             if(isError(result)){

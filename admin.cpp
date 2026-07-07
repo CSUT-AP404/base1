@@ -548,6 +548,23 @@ class Core{
             Branches[branch_id].Requests[req_idx].status = 2;
             cout << "Request " << idx << " cancelled." << '\n';
         }
+        void Is_Request_Usable(int idx, string &codeMelli){
+            auto [branch_Id, Tmp] = RequestIDXs(idx);
+            auto [req_idx, branch_id] = Tmp;
+            if(req_idx == -1){
+                cout << "Error: Request not found." << '\n';
+                return;
+            }
+            if(Branches[branch_id].Requests[req_idx].owner != codeMelli){
+                cout << "Error: Request does not belong to user." << '\n';
+                return;
+            }
+            if(Branches[branch_id].Requests[req_idx].status != 1){
+                cout << "Error: Request is not approved." << '\n';
+                return;
+            }
+            cout << "Branch Id: " << branch_Id << '\n';
+        }
 
         void show_fees(){
             cout << fixed << setprecision(2);
@@ -1208,6 +1225,16 @@ int main(){
         else if(cmd == "cancel_request_op"){
             string codeMelli;
             int request;
+            cin >> codeMelli >> request;
+            core.Cancel_Request(request, codeMelli);
+            continue;
+        }
+        else if(cmd == "is_request_usable_op"){
+            string codeMelli;
+            int request;
+            cin >> codeMelli >> request;
+            core.Is_Request_Usable(request, codeMelli);
+            continue;
         }
         else if(cmd == "create_account"){
             int num; 
