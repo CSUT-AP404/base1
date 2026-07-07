@@ -117,17 +117,15 @@ struct User {
     bool operator== (const User &U) const{
         return (codeMelli == U.codeMelli);
     }
+    bool operator< (const User &U) const{
+        if(score != U.score){
+            return score > U.score;
+        }
+        return signup_time < U.signup_time;
+    }
 
     ~User(){}
 };
-
-
-bool compareUsers(const User &a, const User &b) {
-    if(a.score != b.score) {
-        return a.score > b.score;
-    }
-    return a.signup_time < b.signup_time;
-}
 
 
 string Hasher(string pass){
@@ -255,7 +253,7 @@ class USER_Core{
                 return;
             }
             vector<User> sortedUsers = Users;
-            sort(sortedUsers.begin(), sortedUsers.end(), compareUsers);
+            sort(sortedUsers.begin(), sortedUsers.end());
             
             int rank = 1;
             for(int i = 0; i < (int)sortedUsers.size(); i++) {
@@ -375,7 +373,6 @@ string runAdmin(const vector<string>& inputs){
     waitpid(pid, nullptr, 0);
     return result;
 }
-
 vector<string> Translate(string &result){
     vector<string> Res;
     Res.push_back("");
@@ -388,6 +385,15 @@ vector<string> Translate(string &result){
         }
     }
     return Res;
+}
+bool isError(string &result){
+    auto Res = Translate(result);
+    for(auto &Str: Res){
+        if(Str == "Error:"){
+            return true;
+        }
+    }
+    return false;
 }
 
 int main(){
@@ -449,25 +455,27 @@ int main(){
         }
         /*----------------------------------------------------------*/
         /*-----------------------construction zone-------------------------------*/
-        else if(cmd == "open_account"){
-            string pass;
-            cout << "Enter account password: " << endl;
-            cin >> pass;
+        else if(cmd == "request_account"){
+            string branch_id;
+            cin >> branch_id;
             if(User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
+        }
+        else if(cmd == "activate_account"){
+            string pass;
+            cout << "Enter account password: " << endl;
+            cin >> pass;
             payload.push_back("create_account_op");
-            payload.push_back(to_string(10001));
+            payload.push_back(branch_id);
             payload.push_back(pass);
             result = runAdmin(payload);
-
-            if(!result.starts_with("Error:")){
+            if(isError(result)){
                 auto Res = Translate(result);
                 Ucore.AccAdd(User_idx, Res[3]);
                 Ucore.changeScore(User_idx, 3);
             }
-
             cout << result << endl;
         }
         /*---------------------------export_history-------------------------------*/
@@ -594,7 +602,7 @@ int main(){
             result = runAdmin(payload);
             cout << result << endl; 
 
-            if (!result.starts_with("Error:")) {
+            if (isError(result)) {
                 Ucore.RmvAcc(User_idx, Acc_idx);
                 Ucore.changeScore(User_idx, -2);    
             }
@@ -611,7 +619,7 @@ int main(){
             string result = runAdmin(payload);
             cout << result << endl;
 
-            if (!result.starts_with("Error:") && User_idx != -1) {
+            if (isError(result) && User_idx != -1) {
                 Ucore.changeScore(User_idx, 1);
             }
 
@@ -646,7 +654,7 @@ int main(){
             result = runAdmin(payload);
             cout << result << endl;
 
-            if (!result.starts_with("Error:")){
+            if (isError(result)){
                 Ucore.changeScore(User_idx, 1);
             }
 
@@ -680,7 +688,7 @@ int main(){
             payload.push_back(password);
             result = runAdmin(payload);
             cout << result << endl;
-            if (!result.starts_with("Error:")) {
+            if (isError(result)) {
                 Ucore.changeScore(User_idx, 2);
             }
 
@@ -707,7 +715,7 @@ int main(){
 			payload.push_back(account_id);
 			result = runAdmin(payload);
 			cout << result << endl;
-            if (!result.starts_with("Error:")){
+            if (isError(result)){
                 Ucore.changeScore(User_idx, 1); 
             }
 		}

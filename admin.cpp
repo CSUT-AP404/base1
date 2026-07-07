@@ -477,6 +477,9 @@ class Core{
                 cout << B << '\n';
             }
         } 
+        bool isBranch(ll val){
+            return (val >= 10001 && val <= 10001 + (int)Branches.size());
+        }
 
         void show_fees(){
             cout << fixed << setprecision(2);
@@ -1098,6 +1101,7 @@ int main(){
             core.write();
             exit(0);
         }
+        /*-------------Branches----------------------*/
         else if(cmd == "create_branch"){
             string name, Tmp;
             cin >> Tmp;
@@ -1115,6 +1119,13 @@ int main(){
             core.List_Branch();
             continue ; 
         }
+        else if(cmd == "is_branch_op"){
+            ll id;
+            cin >> id;
+            cout << core.
+        }
+        /*-------------------------------------------*/
+        /*------------------Accounts-----------------------*/
         else if(cmd == "create_account"){
             int num; 
             cin >> num;
@@ -1150,7 +1161,6 @@ int main(){
             core.Delete_Account(pass, id);
             continue ; 
         }
-        /*--------------------------*/
         else if(cmd == "create_account_op"){
             int num; 
             cin >> num;
@@ -1183,11 +1193,12 @@ int main(){
             core.Delete_Account(pass, id);
             continue ; 
         }
-        /*--------------------------*/
         else if(cmd == "list_accounts"){
             core.Account_List();
             continue ; 
         }
+        /*--------------------------------------------------------------*/
+        /*--------------------------Transfer Fees---------------------------------*/
         else if(cmd == "set_transfer_fee"){
             ld amount;
             cin >> amount;
@@ -1204,6 +1215,8 @@ int main(){
             core.show_fees();
             continue;
         }
+        /*---------------------------------------------------------------*/
+        /*----------------------------Changing Balance----------------------------------------*/
         else if(cmd == "deposit"){
             string num; 
             double val;
@@ -1259,7 +1272,6 @@ int main(){
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
         }
-        /*----------------------------*/
         else if(cmd == "withdraw_op"){
             string num; 
             double val;
@@ -1298,7 +1310,8 @@ int main(){
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
             continue ; 
         }
-        /*----------------------------*/
+        /*-----------------------------------------------------------------------*/
+        /*----------------------------History---------------------------------------*/
         else if(cmd == "get_balance"){
             string num; 
             cin >> num;
@@ -1309,7 +1322,6 @@ int main(){
             core.get_balance(num);
             continue ; 
         }
-        /*---------------------------*/
         else if(cmd == "get_balance_op"){
             string num; 
             cin >> num;
@@ -1320,7 +1332,6 @@ int main(){
             core.get_balance(num, 1);
             continue ; 
         }
-        /*---------------------------*/
         else if(cmd == "get_history"){
             string num; 
             cin >> num;
