@@ -431,7 +431,7 @@ int main(){
         }
         else if(cmd == "list_branches"){
             payload.push_back("list_branches");
-            cout << runAdmin(payload);
+            cout << runAdmin(payload) << endl;
         }
         /*----------------------------------------------------------*/
         /*-----------------------construction zone-------------------------------*/
@@ -447,11 +447,13 @@ int main(){
             result = runAdmin(payload);
             auto Res = Translate(result);
             payload.clear();
-            if(Res[0] == "0"){
+            if(Res[0] == "No"){
                 cout << "Error: Branch not found." << endl;
             }
             payload.push_back("add_account_request_op");
+            cout << "CodeMelli : " << Ucore.UserCode(User_idx) << endl;
             payload.push_back(Ucore.UserCode(User_idx));
+            cout << "Branch id : " << branch_id << endl;
             payload.push_back(branch_id);
             result = runAdmin(payload);
             Res = Translate(result);
@@ -782,7 +784,9 @@ int main(){
             }
             cout << endl;
         }
-        cout << "Error: Unknown command" << '\n';
+        else{
+            cout << "Error: Unknown command" << '\n';
+        }
     }
     Ucore.write_users();
 }

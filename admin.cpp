@@ -413,7 +413,7 @@ struct Branch{
     }
     bool isRepeat(string &codeMelli){
         for(auto &R : Requests){
-            if(R.owner == codeMelli){
+            if(R.owner == codeMelli && R.status == 0){
                 return true;
             }
         }
@@ -478,6 +478,7 @@ class Core{
             Account_Cnt = 0;
             Trans_Cnt = 1001;
             transferFee = 0.00;
+            Request_Cnt = 0;
             balanceInquiryFee = 0.00 ;
             read();//load
             read_setting();
@@ -516,8 +517,11 @@ class Core{
                 cout << "Error: You already have a pending or active account in this branch." << '\n';
                 return;
             }
-            Branches[idx].Add_Request(Request(codeMelli, Request_Cnt++, 0, Id));
+            cout << "Number is : " << Request_Cnt << '\n';
+            Branches[idx].Add_Request(Request(codeMelli, Request_Cnt, 0, Id));
+            Request_Cnt++;
             cout << "Request submitted. ID: " << Request_Cnt - 1 << '\n';
+            write();
         }
         void printUserRequest(int idx){
             auto [branch_Id, Tmp] = RequestIDXs(idx);
@@ -958,6 +962,7 @@ class Core{
 
         Account_Cnt = j["Account_Cnt"];
         Trans_Cnt   = j["Trans_Cnt"];
+        Request_Cnt = j["Request_Cnt"];
 
         for(auto &item : j["Branches"]){
             Branch B(item["name"], item["id"]);
@@ -1124,6 +1129,7 @@ class Core{
         j["transactions"] = jTrans;
         j["Account_Cnt"] = Account_Cnt;
         j["Trans_Cnt"]   = Trans_Cnt;
+        j["Request_Cnt"] = Request_Cnt;
 
         ofstream outFile("data/BankـData.json");
         outFile << j.dump(4);
@@ -1205,7 +1211,13 @@ int main(){
         else if(cmd == "is_branch_op"){
             ll id;
             cin >> id;
-            cout << core.isBranch(id) << '\n';
+            if(core.isBranch(id)){
+                cout << "Yes" << '\n';
+            }
+            else{
+                cout << "No" << '\n';
+            }
+            continue;
         }
         /*-------------------------------------------*/
         /*------------------Accounts and Requests-----------------------*/
@@ -1474,5 +1486,6 @@ int main(){
         }
         cout << "Error: Unknown command" << '\n';
     }
+    core.write();
     return 0;
 }
