@@ -172,6 +172,9 @@ class USER_Core{
             Users[idx].Request_Ids.push_back(Request_id);
             write_users();
         }
+        vector<int> UserRequestList(int idx) const{
+            return Users[idx].Request_Ids;
+        }
 
         void AccAdd(int idx, string &name){
             Users[idx].id.push_back(name);
@@ -457,6 +460,22 @@ int main(){
             if(!isError(result)){
                 Ucore.Add_Request(User_idx, stoi(Res[3]));
             }
+        }
+        else if(cmd == "my_requests"){
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            auto RequestList = Ucore.UserRequestList(User_idx);
+            for(auto id : RequestList){
+                payload.push_back("print_request_op");
+                payload.push_back(to_string(id));
+                cout << runAdmin(payload) << endl;
+                payload.clear();
+            }
+        }
+        else if(cmd == "cancel_request"){
+            
         }
         else if(cmd == "activate_account"){
 

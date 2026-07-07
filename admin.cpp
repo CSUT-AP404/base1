@@ -393,10 +393,21 @@ struct Branch{
         Requests.push_back(R);
     }
     int RequestIDX(int Id){
-        for(int i = 0, sz = (int)Requests.size(); i < sz; i++){
-            if(Requests[i].id == Id){
-                return i;
+        int l = 0, r = (int)Requests.size();
+        if(Requests[r - 1].id < Id || Requests[l].id > Id){
+            return -1;
+        }
+        while(l + 1 < r){
+            int mid = (l + r) >> 1;
+            if(Requests[mid].id <= Id){
+                l = mid;
             }
+            else{
+                r = mid;
+            }
+        }
+        if(Requests[l].id == Id){
+            return l;
         }
         return -1;
     }
@@ -448,6 +459,17 @@ class Core{
         vector<Transaction> Trans;
         int Account_Cnt, Trans_Cnt, Request_Cnt;
         ld transferFee, balanceInquiryFee;
+
+        pair<int, pair<int, int>> RequestIDXs(int idx){
+            int Tmp;
+            for(int i = 0, sz = (int)Branches.size(); i < sz; i++){
+                Tmp = Branches[i].RequestIDX(idx);
+                if(Tmp != -1){
+                    return make_pair(Branches[i].Id, make_pair(Tmp, i));
+                }
+            }
+            return make_pair(-1, make_pair(-1, -1));
+        }
     public:
         int BankID;
 
@@ -496,6 +518,35 @@ class Core{
             }
             Branches[idx].Add_Request(Request(codeMelli, Request_Cnt++, 0, Id));
             cout << "Request submitted. ID: " << Request_Cnt - 1 << '\n';
+        }
+        void printUserRequest(int idx){
+            auto [branch_Id, Tmp] = RequestIDXs(idx);
+            auto [req_idx, branch_id] = Tmp;
+            if(branch_Id != -1){
+                cout << idx << " | Branch: " << branch_Id << " | Status: " << 
+                Branches[branch_id].Requests[req_idx].GetStatus() << 
+                " | " << Branches[branch_id].Requests[req_idx].Time << '\n';
+                return;
+            }
+            cout << "Error: Couldn't find the request" << '\n';
+        }
+        void Cancel_Request(int idx, string &codeMelli){
+            auto [branch_Id, Tmp] = RequestIDXs(idx);
+            auto [req_idx, branch_id] = Tmp;
+            if(req_idx == -1){
+                cout << "Error: Request not found." << '\n';
+                return;
+            }
+            if(Branches[branch_id].Requests[req_idx].owner != codeMelli){
+                cout << "Error: Request does not belong to user." << '\n';
+                return;
+            }
+            if(Branches[branch_id].Requests[req_idx].status){
+                cout << "Error: Request is not cancellable." << '\n';
+                return;
+            }
+            Branches[branch_id].Requests[req_idx].status = 2;
+            cout << "Request " << idx << " cancelled." << '\n';
         }
 
         void show_fees(){
@@ -1140,13 +1191,23 @@ int main(){
             cout << core.isBranch(id) << '\n';
         }
         /*-------------------------------------------*/
-        /*------------------Accounts-----------------------*/
+        /*------------------Accounts and Requests-----------------------*/
         else if(cmd == "add_account_request_op"){
             string codeMelli;
             ll branch_id;
             cin >> codeMelli >> branch_id;
             core.Add_Request(branch_id, codeMelli);
             continue;
+        }
+        else if(cmd == "print_request_op"){
+            int Id;
+            cin >> Id;
+            core.printUserRequest(Id);
+            continue;
+        }
+        else if(cmd == "cancel_request_op"){
+            string codeMelli;
+            int request;
         }
         else if(cmd == "create_account"){
             int num; 
