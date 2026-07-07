@@ -400,6 +400,14 @@ struct Branch{
         }
         return -1;
     }
+    bool isRepeat(string &codeMelli){
+        for(auto &R : Requests){
+            if(R.owner == codeMelli){
+                return true;
+            }
+        }
+        return false;
+    }
         
     Branch& operator= (const Branch &B){
         name = B.name;
@@ -438,7 +446,7 @@ class Core{
         vector<Account> FAccounts;
         vector<Account> BAccounts;
         vector<Transaction> Trans;
-        int Account_Cnt, Trans_Cnt;
+        int Account_Cnt, Trans_Cnt, Request_Cnt;
         ld transferFee, balanceInquiryFee;
     public:
         int BankID;
@@ -477,8 +485,17 @@ class Core{
                 cout << B << '\n';
             }
         } 
-        bool isBranch(ll val){
-            return (val >= 10001 && val <= 10001 + (int)Branches.size());
+        bool isBranch(ll Id){
+            return (Id >= 10001 && Id <= 10001 + (int)Branches.size());
+        }
+        void Add_Request(ll Id, string &codeMelli){
+            const int idx = Id - 10001;
+            if(Branches[idx].isRepeat(idx)){
+                cout << "Error: You already have a pending or active account in this branch." << '\n';
+                return;
+            }
+            Branches[idx].Add_Request(Request(codeMelli, Request_Cnt++, 0, Id));
+            cout << "Request submitted. ID: " << Request_Cnt - 1 << '\n';
         }
 
         void show_fees(){
@@ -871,10 +888,8 @@ class Core{
         inFile >> j;
         inFile.close();
 
-
         Account_Cnt = j["Account_Cnt"];
         Trans_Cnt   = j["Trans_Cnt"];
-
 
         for(auto &item : j["Branches"]){
             Branch B(item["name"], item["id"]);
@@ -1126,6 +1141,13 @@ int main(){
         }
         /*-------------------------------------------*/
         /*------------------Accounts-----------------------*/
+        else if(cmd == "add_account_request_op"){
+            string codeMelli;
+            ll branch_id;
+            cin >> codeMelli >> branch_id;
+            core.Add_Request(branch_id, codeMelli);
+            continue;
+        }
         else if(cmd == "create_account"){
             int num; 
             cin >> num;
@@ -1362,7 +1384,7 @@ int main(){
             core.reset_all();
             continue ; 
         }
-        cout << "Unknown command" << '\n';
+        cout << "Error: Unknown command" << '\n';
     }
     return 0;
 }

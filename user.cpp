@@ -58,44 +58,8 @@ string GetTime(){
     Time += Sec;
     return Time; 
 };
-
-struct Request{
-    string owner, Time, reason;
-    int id, Branch_Id, status;
-
-    Request (string owner, int id, int status, int Branch_Id){
-        this -> owner = owner;
-        this -> id = id;
-        this -> status = status;
-        this -> Branch_Id = Branch_Id;
-        Time = GetTime();
-    }
-    string GetStatus() const{
-        if(!status){
-            return "PENDING";
-        }
-        if(status == 1){
-            return "APPROVED";
-        }
-        if(status == 2){
-            return "CANCELLED";
-        }
-        return "REJECTED";
-    }
-
-    bool operator== (const Request &R) const{
-        return (id == R.id);
-    }
-    bool operator!= (const Request &R) const{
-        return (id != R.id);
-    }
-    bool operator< (const Request &R) const{
-        return (id < R.id);
-    }
-
-    ~Request (){}
-};
 struct User {
+    vector<int> Request_Ids;
     vector<string> id;
     string codeMelli;
     string Hashpass;
@@ -140,30 +104,29 @@ bool compare(string pass, string input){
 class USER_Core{
     private : 
         vector<User> Users; 
-    
-    bool isValid(string id){
-        if(id.length() < 8 || id.length() > 10){
-            return false;
-        }
-        for(char c : id){
-            if(!isdigit(c)){
+        bool isValid(string id){
+            if(id.length() < 8 || id.length() > 10){
                 return false;
             }
+            for(char c : id){
+                if(!isdigit(c)){
+                    return false;
+                }
+            }
+            while(id.length() < 10){
+                id = "0" + id;
+            }
+            int sum = 0;
+            for (int i = 0; i < 9; i++) {
+                sum += (id[i] - '0') * (10 - i);
+            }
+            int remainder = sum % 11;
+            int controlDigit = id[9] - '0';
+            if(remainder < 2){
+                return (controlDigit == remainder);
+            } 
+            return (controlDigit == (11 - remainder));
         }
-        while(id.length() < 10){
-            id = "0" + id;
-        }
-        int sum = 0;
-        for (int i = 0; i < 9; i++) {
-            sum += (id[i] - '0') * (10 - i);
-        }
-        int remainder = sum % 11;
-        int controlDigit = id[9] - '0';
-        if(remainder < 2){
-            return (controlDigit == remainder);
-        } 
-        return (controlDigit == (11 - remainder));
-    }
     public :
         USER_Core(){
             read_users();
@@ -202,6 +165,14 @@ class USER_Core{
             cout << "Error: User not found." << '\n';
             return -1;
         }
+        string UserCode(int idx){
+            return Users[idx].codeMelli;
+        }
+        void Add_Request(int idx, int Request_id){
+            Users[idx].Request_Ids.push_back(Request_id);
+            write_users();
+        }
+
         void AccAdd(int idx, string &name){
             Users[idx].id.push_back(name);
             write_users();
@@ -238,7 +209,6 @@ class USER_Core{
                 write_users();
             }
         }
-
         string getLevel(int score) {
             if(score <= 4) 
                 return "Bronze";
@@ -248,7 +218,6 @@ class USER_Core{
                 return "Gold";
             return "Diamond";
         }
-
         void ptrRank(int idx) {
             if(idx < 0 || idx >= (int)Users.size()){
                 return;
@@ -287,12 +256,14 @@ class USER_Core{
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }
+                for(auto &req : userr["request_ids"]){
+                    u.Request_Ids.push_back(req);
+                }
                 Users.push_back(u);
             }
         }
         inFile.close();
     }
-
     void write_users() {
         json j;
         json jUsers = json::array();
@@ -301,12 +272,17 @@ class USER_Core{
             for(auto &acc : userr.id){
                 jAccs.push_back(acc);
             }
+            json jRequests = json::array();
+            for(auto &R : userr.Request_Ids){
+                jRequests.push_back(R);
+            }
             jUsers.push_back({
                 {"codeMelli", userr.codeMelli},
                 {"pass", userr.Hashpass},
                 {"score", userr.score},
                 {"signup_time", userr.signup_time},
-                {"accounts", jAccs}
+                {"accounts", jAccs},
+                {"request_ids", jRequests}
             });
         }
         j["users"] = jUsers;
@@ -463,12 +439,33 @@ int main(){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
+            payload.push_back("is_branch_op");
+            payload.push_back(branch_id);
+            result = runAdmin(payload);
+            auto Res = Translate(result);
+            payload.clear();
+            if(Res[0] == "0"){
+                cout << "Error: Branch not found." << endl;
+            }
+            payload.push_back("add_account_request_op");
+            payload.push_back(Ucore.UserCode(User_idx));
+            payload.push_back(branch_id);
+            result = runAdmin(payload);
+            Res = Translate(result);
+            cout << result << endl;
+            payload.clear();
+            if(!isError(result)){
+                Ucore.Add_Request(User_idx, stoi(Res[3]));
+            }
         }
         else if(cmd == "activate_account"){
-            string pass;
-            cout << "Enter account password: " << endl;
-            cin >> pass;
-            payload.push_back("create_account_op");
+
+            if(User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+
+            /*payload.push_back("create_account_op");
             payload.push_back(branch_id);
             payload.push_back(pass);
             result = runAdmin(payload);
@@ -477,7 +474,7 @@ int main(){
                 Ucore.AccAdd(User_idx, Res[3]);
                 Ucore.changeScore(User_idx, 3);
             }
-            cout << result << endl;
+            cout << result << endl;//*/
         }
         /*---------------------------export_history-------------------------------*/
         else if(cmd == "export_history"){
@@ -744,6 +741,7 @@ int main(){
             }
             cout << endl;
         }
+        cout << "Error: Unknown command" << '\n';
     }
-    //Ucore.write_users();
+    Ucore.write_users();
 }
