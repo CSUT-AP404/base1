@@ -490,7 +490,7 @@ class Core{
         }
         void Add_Request(ll Id, string &codeMelli){
             const int idx = Id - 10001;
-            if(Branches[idx].isRepeat(idx)){
+            if(Branches[idx].isRepeat(codeMelli)){
                 cout << "Error: You already have a pending or active account in this branch." << '\n';
                 return;
             }
