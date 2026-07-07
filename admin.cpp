@@ -180,6 +180,24 @@ string GetTime(){
     Time += Sec; // moshkel (it used to be minute, which seemed wrong, so changed it to second)
     return Time; 
 };
+string GetTime2(){
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    string Time = to_string(1900 + ltm->tm_year) + '-';
+    // added +1 to month
+    string Month = to_string(ltm->tm_mon + 1); 
+    if((int)Month.size() == 1){
+        Time += '0';
+    }
+    Time += Month;
+    Time += '-';
+    string Day = to_string(ltm->tm_mday);
+    if((int)Day.size() == 1){
+        Time += '0';
+    }
+    Time += Day;
+    return Time; 
+};
 
 
 struct Transaction{
@@ -419,6 +437,30 @@ struct Branch{
         }
         return false;
     }
+    int PendingCnt(){
+        int res = 0;
+        for(auto &R : Requests){
+            res += (R.status == 0);
+        }
+        return res;
+    }
+    int RejectedToday(){
+        string Time  = GetTime2();
+        int sz = (int)Time.size(), res = 0;
+        for(auto &R : Requests){
+            if(R.Time.size() < sz){
+                continue;
+            }
+            bool f = 1;
+            for(int i = 0; i < sz && f == 1; i++){
+                if(R.Time[i] != Time[i]){
+                    f = 0;
+                }
+            }
+            res += f;
+        }
+        return res;
+    }
         
     Branch& operator= (const Branch &B){
         name = B.name;
@@ -470,6 +512,29 @@ class Core{
             }
             return make_pair(-1, make_pair(-1, -1));
         }
+        int FAccountsIDX(string &AI){
+            for(int i = 0, sz = (int)FAccounts.size(); i < sz; i++){
+                if(AI == FAccounts[i].getIDStr()){
+                    return i;
+                }
+            }
+            return -1;
+        }
+        int BAccountsIDX(string &AI){
+            for(int i = 0, sz = (int)BAccounts.size(); i < sz; i++){
+                if(AI == BAccounts[i].getIDStr()){
+                    return i;
+                }
+            }
+            return -1;
+        }
+        int ActiveAccountCnt(int idx){
+            int res = 0;
+            for(auto &AI : Branches[idx].AIs){
+                res += (FAccountsIDX(AI) != -1);
+            }
+            return res;
+        }
     public:
         int BankID;
 
@@ -511,6 +576,16 @@ class Core{
         bool isBranch(ll Id){
             return (Id >= 10001 && Id <= 10001 + (int)Branches.size());
         }
+        void Branch_Dashboard(ll branch_id){
+            if(!isBranch(branch_id)){
+                cout << "Error: Branch not found." << '\n';
+                return;
+            }
+            int idx = branch_id - 10001;
+            cout << "Branch: " << Branches[idx].name << "\n Active accounts: " << ActiveAccountCnt(branch_id)
+            << "\n Pending requests: " << Branches[idx].PendingCnt() << "\n Rejected (today): "
+            << Branches[idx].RejectedToday() << '\n';
+        }
         void Add_Request(ll Id, string &codeMelli){
             const int idx = Id - 10001;
             if(Branches[idx].isRepeat(codeMelli)){
@@ -525,13 +600,36 @@ class Core{
         void printUserRequest(int idx){
             auto [branch_Id, Tmp] = RequestIDXs(idx);
             auto [req_idx, branch_id] = Tmp;
-            if(branch_Id != -1){
+            if(branch_Id != -1 && Branches[branch_id].Requests[req_idx].status != 3){
                 cout << idx << " | Branch: " << branch_Id << " | Status: " << 
                 Branches[branch_id].Requests[req_idx].GetStatus() << 
                 " | " << Branches[branch_id].Requests[req_idx].Time << '\n';
                 return;
             }
+            else if(branch_Id != -1){
+                cout << idx << " | Branch: " << branch_Id << " | Status: " << 
+                Branches[branch_id].Requests[req_idx].GetStatus() << 
+                " | " << Branches[branch_id].Requests[req_idx].reason << '\n';
+                return;
+            }
             cout << "Error: Couldn't find the request" << '\n';
+        }
+        void ListRequests(ll branch_Id){
+            if(!isBranch(branch_Id)){
+                cout << "Error: Branch not found." << '\n';
+                return;
+            }
+            const int branch_id = branch_Id - 10001;
+            if(!Branches[branch_id].PendingCnt()){
+                cout << "No pending requests for this branch." << '\n';
+                return;
+            }
+            for(auto &R : Branches[branch_id].Requests){
+                if(!R.status){
+                    cout << R.id << " | User: " << R.owner << " | Branch: " << branch_Id << " | " << 
+                    R.Time << "PENDING\n";
+                }
+            }
         }
         void Cancel_Request(int idx, string &codeMelli){
             auto [branch_Id, Tmp] = RequestIDXs(idx);
@@ -568,6 +666,35 @@ class Core{
             }
             cout << "Branch Id: " << branch_Id << '\n';
         }
+        void Approve_Request(int request_Id){
+            auto [branch_Id, Tmp] = RequestIDXs(request_Id);
+            auto [req_idx, branch_id] = Tmp;
+            if(branch_Id == -1){
+                cout << "Error: Request not found." << '\n';
+                return;
+            }
+            if(Branches[branch_id].Requests[req_idx].status){
+                cout << "Error: Request is not pending." << '\n';
+                return;
+            }
+            Branches[branch_id].Requests[req_idx].status = 1;
+            cout << "Request " << request_Id << " approved. Waiting for user activation." << '\n';
+        }
+        void Reject_Request(int request_Id, string &Reason){
+            auto [branch_Id, Tmp] = RequestIDXs(request_Id);
+            auto [req_idx, branch_id] = Tmp;
+            if(branch_Id == -1){
+                cout << "Error: Request not found." << '\n';
+                return;
+            }
+            if(Branches[branch_id].Requests[req_idx].status){
+                cout << "Error: Request is not pending." << '\n';
+                return;
+            }
+            Branches[branch_id].Requests[req_idx].reason = Reason;
+            Branches[branch_id].Requests[req_idx].status = 3;
+            cout << "Request " << request_Id << " rejected." << '\n';
+        }
 
         void show_fees(){
             cout << fixed << setprecision(2);
@@ -596,22 +723,13 @@ class Core{
         }
 
         void Create_Account(int Branch_Id, string &Pass){
-            bool found = false;
-            int idx = -1;
-            for(int i = 0, sz = (int)Branches.size(); i < sz; i++){
-                if(Branches[i].Id == Branch_Id){
-                    found = true;
-                    idx = i;
-                    break;
-                }
-            }   
-            if(!found){ 
+            if(!isBranch(Branch_Id)){ 
                 cout << "Error: The branch doesnt exist" << '\n'; 
                 return; 
             }
             FAccounts.push_back(Account (BankID, Account_Cnt++, Branch_Id, Hasher(Pass)));
             cout << "Account created. Number: " << FAccounts.back().getID() << '\n';
-            Branches[idx].AIs.push_back(FAccounts.back().getIDStr());
+            Branches[Branch_Id - 10001].AIs.push_back(FAccounts.back().getIDStr());
             write();
         }
         void Close_Account(string &Pass, string &ID){
@@ -1207,6 +1325,12 @@ int main(){
             core.List_Branch();
             continue ; 
         }
+        else if(cmd == "branch_dashboard"){
+            ll branch_id;
+            cin >> branch_id;
+            core.Branch_Dashboard(branch_id);
+            continue;            
+        }
         else if(cmd == "is_branch_op"){
             ll id;
             cin >> id;
@@ -1219,7 +1343,13 @@ int main(){
             continue;
         }
         /*-------------------------------------------*/
-        /*------------------Accounts and Requests-----------------------*/
+        /*------------------Requests-----------------------*/
+        else if(cmd == "list_requests"){
+            ll branch_id;
+            cin >> branch_id;
+            core.ListRequests(branch_id);
+            continue;
+        }
         else if(cmd == "add_account_request_op"){
             string codeMelli;
             ll branch_id;
@@ -1240,6 +1370,21 @@ int main(){
             core.Cancel_Request(request, codeMelli);
             continue;
         }
+        else if(cmd == "approve_request"){
+            int request;
+            cin >> request;
+            core.Approve_Request(request);
+            continue;
+        }
+        else if(cmd == "reject_request"){
+            int request;
+            cin >> request;
+            string reason;
+            cout << "Enter rejection reason: " << '\n';
+            cin >> reason;
+            core.Reject_Request(request, reason);
+            continue;
+        }
         else if(cmd == "is_request_usable_op"){
             string codeMelli;
             int request;
@@ -1247,6 +1392,8 @@ int main(){
             core.Is_Request_Usable(request, codeMelli);
             continue;
         }
+        /*-----------------------------------------------------*/
+        /*----------------Accounts-----------------------------*/
         else if(cmd == "create_account"){
             int num; 
             cin >> num;
