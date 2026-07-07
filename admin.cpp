@@ -582,7 +582,7 @@ class Core{
                 return;
             }
             int idx = branch_id - 10001;
-            cout << "Branch: " << Branches[idx].name << "\n Active accounts: " << ActiveAccountCnt(branch_id)
+            cout << "Branch: " << Branches[idx].name << "\n Active accounts: " << ActiveAccountCnt(idx)
             << "\n Pending requests: " << Branches[idx].PendingCnt() << "\n Rejected (today): "
             << Branches[idx].RejectedToday() << '\n';
         }

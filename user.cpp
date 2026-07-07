@@ -510,7 +510,7 @@ int main(){
             payload.push_back(Res[2]);
             payload.push_back(pass);
             result = runAdmin(payload);
-            if(isError(result)){
+            if(!isError(result)){
                 auto Res = Translate(result);
                 Ucore.AccAdd(User_idx, Res[3]);
                 Ucore.changeScore(User_idx, 3);
@@ -783,7 +783,7 @@ int main(){
             cout << endl;
         }
         else{
-            cout << "Error: Unknown command" << '\n';
+            cout << "Error: Unknown command" << endl;
         }
     }
     Ucore.write_users();
