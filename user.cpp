@@ -141,28 +141,29 @@ class USER_Core{
     private : 
         vector<User> Users; 
     
-        bool isValid(string &codeMelli){
-            if(codeMelli.size() < 8 || codeMelli.size() > 10){
-                return false;
-            }
-            while(codeMelli.size() < 10){
-                string Tmp = codeMelli;
-                codeMelli = "0";
-                codeMelli += Tmp;
-            }
-            ll Tmp = 0;
-            for(ll i = 2; i <= 10; i++){
-                Tmp += (int)(codeMelli[i - 2] - '0') * i; 
-            }
-            Tmp %= 11;
-            if(Tmp < 2 && (int)(codeMelli[9] - '0') == Tmp){
-                return true;
-            }
-            if(Tmp >= 2 && (int)(codeMelli[9] - '0') == (11 - Tmp)){
-                return true;
-            }
+    bool isValid(string id){
+        if(id.length() < 8 || id.length() > 10){
             return false;
         }
+        for(char c : id){
+            if(!isdigit(c)){
+                return false;
+            }
+        }
+        while(id.length() < 10){
+            id = "0" + id;
+        }
+        int sum = 0;
+        for (int i = 0; i < 9; i++) {
+            sum += (id[i] - '0') * (10 - i);
+        }
+        int remainder = sum % 11;
+        int controlDigit = id[9] - '0';
+        if(remainder < 2){
+            return (controlDigit == remainder);
+        } 
+        return (controlDigit == (11 - remainder));
+    }
     public :
         USER_Core(){
             read_users();
