@@ -451,9 +451,7 @@ int main(){
                 cout << "Error: Branch not found." << endl;
             }
             payload.push_back("add_account_request_op");
-            cout << "CodeMelli : " << Ucore.UserCode(User_idx) << endl;
             payload.push_back(Ucore.UserCode(User_idx));
-            cout << "Branch id : " << branch_id << endl;
             payload.push_back(branch_id);
             result = runAdmin(payload);
             Res = Translate(result);

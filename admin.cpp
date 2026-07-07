@@ -517,7 +517,6 @@ class Core{
                 cout << "Error: You already have a pending or active account in this branch." << '\n';
                 return;
             }
-            cout << "Number is : " << Request_Cnt << '\n';
             Branches[idx].Add_Request(Request(codeMelli, Request_Cnt, 0, Id));
             Request_Cnt++;
             cout << "Request submitted. ID: " << Request_Cnt - 1 << '\n';
