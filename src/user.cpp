@@ -63,6 +63,7 @@ string GetTime(){
 struct User {
     vector<int> Request_Ids;
     vector<string> id;
+    vector <string> ibans;
     string codeMelli;
     string Hashpass;
     int score = 0;
@@ -142,7 +143,29 @@ class USER_Core{
         USER_Core(){
             read_users();
         }
-
+        int mod97(const string &s) {
+            int rem = 0;
+            for (char c : s){
+                rem = (rem * 10 + (c - '0')) % 97;
+            }
+            return rem;
+        } 
+        string add_iban(int user_index, int account_index) {
+            if (Users[user_index].ibans.size() < Users[user_index].id.size()){
+                Users[user_index].ibans.resize(Users[user_index].id.size());
+            }
+            string body = "000000" + Users[user_index].id[account_index];
+            string num = body + "182700";
+            int check = 98 - mod97(num);
+            string iban = "IR";
+            if (check < 10){
+                iban += "0";
+            }
+            iban += to_string(check);
+            iban += body;
+            Users[user_index].ibans[account_index] = iban;
+            return iban;
+        }
         vector<string> AccList(int idx){
             return Users[idx].id;
         }
@@ -832,7 +855,7 @@ int main(){
                 continue;
             }
             auto now_time = chrono::high_resolution_clock::now();
-            double time_since_OTP_request = chrono::duration<double>(now_time - OTP_start_time);
+            double time_since_OTP_request = chrono::duration<double>(now_time - OTP_start_time).count();
             if (time_since_OTP_request > 120){
                 cout << "Error: OTP expired.\n";
                 continue;
@@ -843,7 +866,25 @@ int main(){
             }
             // TODO runAdmin
         }
-        
+        else if (cmd == "show_iban"){
+            string account_id;
+            cin >> account_id;
+            int account_index;
+            vector <string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (int i = 0; i < Accs.size(); ++ i){
+                if (Accs[i] == account_id){
+                    belong_to = true;
+                    account_index = i;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            string iban = Ucore.add_iban(User_idx, account_index);
+            cout << "IBAN: IR12 " << iban << '\n';
+        }
         else {
             cout << "Error: Unknown command" << endl;
         }
