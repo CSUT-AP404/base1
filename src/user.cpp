@@ -885,6 +885,17 @@ int main(){
             string iban = Ucore.add_iban(User_idx, account_index);
             cout << "IBAN: IR12 " << iban << '\n';
         }
+        else if(cmd=="paya_transfer"){
+            string from_account, to_account, iban;
+            double amount;
+            cin >> from_account >> to_account >> iban >> amount;
+            payload.push_back("create_paya");
+            payload.push_back(from_account);
+            payload.push_back(to_account);
+            payload.push_back(iban);
+            payload.push_back(to_string(amount));
+            cout << runAdmin(payload) << '\n';
+        }
         else {
             cout << "Error: Unknown command" << endl;
         }
