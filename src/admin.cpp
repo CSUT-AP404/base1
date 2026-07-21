@@ -130,6 +130,15 @@ struct Account_Id{
     }
     ~Account_Id(){}
 };
+
+struct PayaRequest {
+    int id;
+    string from_account;
+    string destination_iban;
+    long double amount;
+    int status;          // 0=pending 1=approved 2=rejected
+};
+
 ostream& operator<< (ostream &O, const Account_Id &AI){
     for(int i = 0; i < 4; i++){
         string Tmp = to_string(AI[i]);
@@ -247,7 +256,26 @@ class Account{
         int Branch_Id;
         ld Coin;
         vector<Transaction> History;
+        string IBAN;
+        void make_IBAN (){
+            string body = "000000" + AI;
+            string num = body + "182700";
+            int check = 98 - mod97(num);
+            string iban = "IR";
+            if (check < 10){
+                iban += "0";
+            }
+            iban += to_string(check);
+            iban += body;
+            IBAN = iban;
+        }
     public:
+        string getIBAN() const{
+            return IBAN;
+        }
+        void setIBAN(const string &iban){
+            IBAN = iban;
+        }
         string HashPass;
         bool Active;
 
@@ -257,6 +285,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
+            make_IBAN ()
         }
         Account (int n1, int n2, int n3, int n4, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (n1, n2, n3, n4);
@@ -264,6 +293,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
+            make_IBAN ()
         }
         Account (string Str, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (Str);
@@ -271,6 +301,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
+            make_IBAN ()
         }
         int get_transactions_size (){
             return History.size();
@@ -494,12 +525,50 @@ bool compare(string pass, string input){
 /*----------------------------------------------------------------------*/
 struct User {
     vector<int> Request_Ids;
+    vector <Paya_Request> paya_reqs;
     vector<string> id;
     string codeMelli;
     string Hashpass;
     int score = 0;
     string signup_time;
+    string paya_status (int i){
+        if (i == 0){
+            return "pending";
+        }
+        if (i == 1){
+            return "approved";
+        }
+        if (i == 2){
+            return "rejected";
+        }
+    }
+    void list_paya (){
+        for (int i = 0; i < paya.reqs.size(); ++ i){
+            cout << paya_reqs[i].from_account << " "
+            << paya_reqs[i].destination_iban << " "
+            << paya_reqs[i].amount << " " 
+            paya_status (paya_reqs[i].status) << " "
+            << paya_reqs[i].id << '\n';
+        }
+    }
+    void approve_paya (int payaid){
+        for (int i = 0; i < paya_reqs.size(); ++ i){
+            if (paya_reqs[i].id == payaid){
+                paya_reqs[i].status = 1;
+                break;
+            }
+        }
+    }
+    void reject_paya (int payaid){
+        for (int i = 0; i < paya_reqs.size(); ++ i){
+            if (paya_reqs[i].id == payaid){
+                paya_reqs[i].status = 2;
+                //paya_reqs[i].from_account += amount;
 
+                break;
+            }
+        }
+    }
     User(){}
     User(string codeMelli, string Hashpass){
         this->codeMelli = codeMelli ;
@@ -507,7 +576,9 @@ struct User {
         this->score = 0;
         this->signup_time = GetTime();
     }
-
+    void add_paya (Paya_Request paya){
+        paya_reqs.push_back(paya);
+    }
     void erase(int idx){
         id.erase(id.begin() + idx);
     }
@@ -532,9 +603,53 @@ class Core{
         vector<Account> FAccounts;
         vector<Account> BAccounts;
         vector<Transaction> Trans;
+        vector<PayaRequest> PayaRequests;
+        int PayaCnt = 1;
         int Account_Cnt, Trans_Cnt, Request_Cnt;
         ld transferFee, balanceInquiryFee;
-
+    public:    
+        void add_paya (Paya_Request paya){
+            paya_reqs.push_back(paya);
+            //withdrawal(paya.from_account, amount);
+        }
+        string paya_status (int i){
+            if (i == 0){
+                return "pending";
+            }
+            if (i == 1){
+                return "approved";
+            }
+            if (i == 2){
+                return "rejected";
+            }
+        }
+        void list_paya (){
+            for (int i = 0; i < paya.reqs.size(); ++ i){
+                cout << paya_reqs[i].from_account << " "
+                << paya_reqs[i].destination_iban << " "
+                << paya_reqs[i].amount << " " 
+                paya_status (paya_reqs[i].status) << " "
+                << paya_reqs[i].id << '\n';
+            }
+        }
+        void approve_paya (int payaid){
+            for (int i = 0; i < paya_reqs.size(); ++ i){
+                if (paya_reqs[i].id == payaid){
+                    paya_reqs[i].status = 1;
+                    break;
+                }
+            }
+        }
+        void reject_paya (int payaid){
+            for (int i = 0; i < paya_reqs.size(); ++ i){
+                if (paya_reqs[i].id == payaid){
+                    paya_reqs[i].status = 2;
+                    Deposit(paya_reqs[i].from_account, amount);
+                    break;
+                }
+            }
+        }
+    private:
         pair<int, pair<int, int>> RequestIDXs(int idx){
             int Tmp;
             for(int i = 0, sz = (int)Branches.size(); i < sz; i++){
@@ -579,7 +694,14 @@ class Core{
         }
     public:
         int BankID;
-
+        int IBANIDX (string &iban){
+           for(int i = 0; i < FAccounts.size(); ++ i){
+                if (FAccounts[i].getIBAN() == iban){
+                     return i;
+                }
+            }
+            return -1;
+        }
         Core(int BankID = 5022){
             this -> BankID = BankID;
             Account_Cnt = 0;
@@ -1713,6 +1835,34 @@ int main(){
         else if(cmd == "reset_all"){
             core.reset_all();
             continue ; 
+        }
+        else if (cmd == "create_paya"){
+            double amount;
+            string from_account, iban;
+            cin >> from_account >> iban >> amount;
+            int iban_account_idx = core.IBANIDX(iban);
+            Paya_Request paya;
+            paya.from_account = from_account;
+            paya.destination_iban = iban;
+            paya.amount = amount;
+            paya.status = 0;
+            core.Paya_Request(paya);
+        }
+        else if (cmd == "list_paya_requests"){
+            core.list_paya();
+        }
+        else if (cmd == "approve_paya"){
+            int id;
+            cin >> id;
+            core.approve_paya(id)
+            cout << "Paya approved. Transaction ID: "
+            << id << '\n';
+        }
+        else if (cmd == "reject_paya"){
+            int id;
+            cin >> id;
+            core.reject_paya(id);
+            cout << "Paya rejected. Amount returned to source account.\n";
         }
         cout << "Error: Unknown command" << '\n';
     }
