@@ -279,13 +279,19 @@ class USER_Core{
                 User u;
                 u.codeMelli = userr["codeMelli"];
                 u.Hashpass = userr["pass"];
-                u.score = userr.value("score", 0);
-                u.signup_time = userr.value("signup_time", GetTime());
+                u.score = userr["score"];
+                u.signup_time = userr["signup_time"];
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }
                 for(auto &req : userr["request_ids"]){
                     u.Request_Ids.push_back(req);
+                }
+                for(auto &Id : userr["user_id"]){
+                    u.id.push_back(Id);
+                }
+                for(auto &IB : userr["iban"]){
+                    u.ibans.push_back(IB);
                 }
                 Users.push_back(u);
             }
@@ -304,13 +310,23 @@ class USER_Core{
             for(auto &R : userr.Request_Ids){
                 jRequests.push_back(R);
             }
+            json jId = json::array();
+            for(auto &Id : userr.id){
+                jId.push_back(Id);
+            }
+            json jIBan = json::array();
+            for(auto &IB : userr.ibans){
+                jIBan.push_back(IB);
+            }
             jUsers.push_back({
                 {"codeMelli", userr.codeMelli},
                 {"pass", userr.Hashpass},
                 {"score", userr.score},
                 {"signup_time", userr.signup_time},
                 {"accounts", jAccs},
-                {"request_ids", jRequests}
+                {"request_ids", jRequests},
+                {"user_id", jId}
+                {"iban", jIBan};
             });
         }
         j["users"] = jUsers;
@@ -414,8 +430,8 @@ int main(){
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
-    int OTP;
     auto OTP_start_time = chrono::high_resolution_clock::now();
+    int OTP;
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -900,5 +916,4 @@ int main(){
             cout << "Error: Unknown command" << endl;
         }
     }
-    Ucore.write_users();
 }

@@ -1330,6 +1330,15 @@ class Core{
             T.Destination = t["destination"];
             Trans.push_back(T);
         }
+        for(auto &u : j["PayaRequests"]){
+            Paya_Request P;
+            P.id = u["id"];
+            P.from_account = u["from_account"];
+            P.destination_iban = u["destination_iban"];
+            P.amount = u["amount"];
+            P.status = u["status"];
+            PayaRequests.push_back(P);
+        }
     }
     void write(){
         json j ; 
@@ -1417,6 +1426,17 @@ class Core{
                 {"destination", T.Destination}
             });
         }
+        json jPayaRequests = json::array();
+        for(auto &P : PayaRequests){
+            jPayaRequests.push_back({
+                {"id", P.id},
+                {"from_account", P.from_account},
+                {"destination_iban", P.destination_iban},
+                {"amount", P.amount},
+                {"status", P.status}
+            });
+        }
+        j["PayaRequests"] = jPayaRequests;
         j["transactions"] = jTrans;
         j["Account_Cnt"] = Account_Cnt;
         j["Trans_Cnt"]   = Trans_Cnt;
