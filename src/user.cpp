@@ -325,8 +325,8 @@ class USER_Core{
                 {"signup_time", userr.signup_time},
                 {"accounts", jAccs},
                 {"request_ids", jRequests},
-                {"user_id", jId}
-                {"iban", jIBan};
+                {"user_id", jId},
+                {"iban", jIBan}
             });
         }
         j["users"] = jUsers;

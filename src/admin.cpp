@@ -1874,7 +1874,7 @@ int main(){
         else if (cmd == "approve_paya"){
             int id;
             cin >> id;
-            core.approve_paya(id)
+            core.approve_paya(id);
             cout << "Paya approved. Transaction ID: "
             << id << '\n';
         }
