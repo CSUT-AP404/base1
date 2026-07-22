@@ -150,7 +150,7 @@ class USER_Core{
             }
             return rem;
         } 
-        string add_iban(int user_index, int account_index) {
+        string add_iban(int user_index, int account_index){
             if (Users[user_index].ibans.size() < Users[user_index].id.size()){
                 Users[user_index].ibans.resize(Users[user_index].id.size());
             }
@@ -279,19 +279,13 @@ class USER_Core{
                 User u;
                 u.codeMelli = userr["codeMelli"];
                 u.Hashpass = userr["pass"];
-                u.score = userr["score"];
-                u.signup_time = userr["signup_time"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }
                 for(auto &req : userr["request_ids"]){
                     u.Request_Ids.push_back(req);
-                }
-                for(auto &Id : userr["user_id"]){
-                    u.id.push_back(Id);
-                }
-                for(auto &IB : userr["iban"]){
-                    u.ibans.push_back(IB);
                 }
                 Users.push_back(u);
             }
@@ -310,23 +304,13 @@ class USER_Core{
             for(auto &R : userr.Request_Ids){
                 jRequests.push_back(R);
             }
-            json jId = json::array();
-            for(auto &Id : userr.id){
-                jId.push_back(Id);
-            }
-            json jIBan = json::array();
-            for(auto &IB : userr.ibans){
-                jIBan.push_back(IB);
-            }
             jUsers.push_back({
                 {"codeMelli", userr.codeMelli},
                 {"pass", userr.Hashpass},
                 {"score", userr.score},
                 {"signup_time", userr.signup_time},
                 {"accounts", jAccs},
-                {"request_ids", jRequests},
-                {"user_id", jId},
-                {"iban", jIBan}
+                {"request_ids", jRequests}
             });
         }
         j["users"] = jUsers;
@@ -430,8 +414,8 @@ int main(){
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
-    auto OTP_start_time = chrono::high_resolution_clock::now();
     int OTP;
+    auto OTP_start_time = chrono::high_resolution_clock::now();
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -880,7 +864,11 @@ int main(){
                 cout << "Error: transaction limit exceeded.\n";
                 continue;
             }
-            // TODO runAdmin
+            payload.push_back("transfer_op");
+            payload.push_back(from_account);
+            payload.push_back(to_account);
+            payload.push_back(to_string(amount));
+            runAdmin(payload);
         }
         else if (cmd == "show_iban"){
             string account_id;
@@ -901,13 +889,12 @@ int main(){
             string iban = Ucore.add_iban(User_idx, account_index);
             cout << "IBAN: IR12 " << iban << '\n';
         }
-        else if(cmd=="paya_transfer"){
+        else if (cmd == "paya_transfer"){
             string from_account, to_account, iban;
             double amount;
-            cin >> from_account >> to_account >> iban >> amount;
+            cin >> from_account >> iban >> amount;
             payload.push_back("create_paya");
             payload.push_back(from_account);
-            payload.push_back(to_account);
             payload.push_back(iban);
             payload.push_back(to_string(amount));
             cout << runAdmin(payload) << '\n';
@@ -916,4 +903,5 @@ int main(){
             cout << "Error: Unknown command" << endl;
         }
     }
+    Ucore.write_users();
 }

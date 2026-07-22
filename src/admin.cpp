@@ -20,7 +20,10 @@ typedef long double ld;
 /*----------------------------------------------------*/
 struct Account_Id{
     int n[4];
-
+    string strid (){
+        string s1 = to_string(n[0]), s2 = to_string(n[1]), s3 = to_string(n[2]), s4 = to_string(n[3]);
+        return s1 + s2 + s3 + s4;
+    }
     Account_Id (){
         for(int i = 0; i < 4; i++){
             n[i] = 0;
@@ -131,7 +134,7 @@ struct Account_Id{
     ~Account_Id(){}
 };
 
-struct PayaRequest {
+struct Paya_Request {
     int id;
     string from_account;
     string destination_iban;
@@ -257,8 +260,15 @@ class Account{
         ld Coin;
         vector<Transaction> History;
         string IBAN;
+        int mod97(const string &s) {
+            int rem = 0;
+            for (char c : s){
+                rem = (rem * 10 + (c - '0')) % 97;
+            }
+            return rem;
+        } 
         void make_IBAN (){
-            string body = "000000" + AI;
+            string body = "000000" + AI.strid();
             string num = body + "182700";
             int check = 98 - mod97(num);
             string iban = "IR";
@@ -285,7 +295,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
-            make_IBAN ()
+            make_IBAN ();
         }
         Account (int n1, int n2, int n3, int n4, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (n1, n2, n3, n4);
@@ -293,7 +303,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
-            make_IBAN ()
+            make_IBAN ();
         }
         Account (string Str, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (Str);
@@ -301,7 +311,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
-            make_IBAN ()
+            make_IBAN ();
         }
         int get_transactions_size (){
             return History.size();
@@ -543,10 +553,10 @@ struct User {
         }
     }
     void list_paya (){
-        for (int i = 0; i < paya.reqs.size(); ++ i){
+        for (int i = 0; i < paya_reqs.size(); ++ i){
             cout << paya_reqs[i].from_account << " "
             << paya_reqs[i].destination_iban << " "
-            << paya_reqs[i].amount << " " 
+            << paya_reqs[i].amount << " " <<
             paya_status (paya_reqs[i].status) << " "
             << paya_reqs[i].id << '\n';
         }
@@ -603,11 +613,13 @@ class Core{
         vector<Account> FAccounts;
         vector<Account> BAccounts;
         vector<Transaction> Trans;
-        vector<PayaRequest> PayaRequests;
-        int PayaCnt = 1;
+        vector <Paya_Request> paya_reqs;
         int Account_Cnt, Trans_Cnt, Request_Cnt;
         ld transferFee, balanceInquiryFee;
     public:    
+        int get_request_cnt () const {
+            return Request_Cnt;
+        }
         void add_paya (Paya_Request paya){
             paya_reqs.push_back(paya);
             //withdrawal(paya.from_account, amount);
@@ -624,10 +636,10 @@ class Core{
             }
         }
         void list_paya (){
-            for (int i = 0; i < paya.reqs.size(); ++ i){
+            for (int i = 0; i < paya_reqs.size(); ++ i){
                 cout << paya_reqs[i].from_account << " "
                 << paya_reqs[i].destination_iban << " "
-                << paya_reqs[i].amount << " " 
+                << paya_reqs[i].amount << " " <<
                 paya_status (paya_reqs[i].status) << " "
                 << paya_reqs[i].id << '\n';
             }
@@ -644,7 +656,7 @@ class Core{
             for (int i = 0; i < paya_reqs.size(); ++ i){
                 if (paya_reqs[i].id == payaid){
                     paya_reqs[i].status = 2;
-                    Deposit(paya_reqs[i].from_account, amount);
+                    Deposit(paya_reqs[i].from_account, paya_reqs[i].amount);
                     break;
                 }
             }
@@ -1330,15 +1342,6 @@ class Core{
             T.Destination = t["destination"];
             Trans.push_back(T);
         }
-        for(auto &u : j["PayaRequests"]){
-            Paya_Request P;
-            P.id = u["id"];
-            P.from_account = u["from_account"];
-            P.destination_iban = u["destination_iban"];
-            P.amount = u["amount"];
-            P.status = u["status"];
-            PayaRequests.push_back(P);
-        }
     }
     void write(){
         json j ; 
@@ -1426,17 +1429,6 @@ class Core{
                 {"destination", T.Destination}
             });
         }
-        json jPayaRequests = json::array();
-        for(auto &P : PayaRequests){
-            jPayaRequests.push_back({
-                {"id", P.id},
-                {"from_account", P.from_account},
-                {"destination_iban", P.destination_iban},
-                {"amount", P.amount},
-                {"status", P.status}
-            });
-        }
-        j["PayaRequests"] = jPayaRequests;
         j["transactions"] = jTrans;
         j["Account_Cnt"] = Account_Cnt;
         j["Trans_Cnt"]   = Trans_Cnt;
@@ -1866,7 +1858,8 @@ int main(){
             paya.destination_iban = iban;
             paya.amount = amount;
             paya.status = 0;
-            core.Paya_Request(paya);
+            paya.id = core.get_request_cnt();
+            core.add_paya(paya);
         }
         else if (cmd == "list_paya_requests"){
             core.list_paya();
