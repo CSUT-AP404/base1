@@ -634,6 +634,7 @@ class Core{
             if (i == 2){
                 return "rejected";
             }
+            return "Error in Admin.";
         }
         void list_paya (){
             for (int i = 0; i < paya_reqs.size(); ++ i){
@@ -751,7 +752,7 @@ class Core{
             }
         } 
         bool isBranch(ll Id){
-            return (Id >= 10001 && Id <= 10001 + (int)Branches.size());
+            return (Id >= 10001 && Id < 10001 + (int)Branches.size());
         }
         void Branch_Dashboard(ll branch_id){
             if(!isBranch(branch_id)){

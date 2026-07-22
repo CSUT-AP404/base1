@@ -475,8 +475,9 @@ int main(){
             result = runAdmin(payload);
             auto Res = Translate(result);
             payload.clear();
-            if(Res[0] == "No"){
+            if(Res[0] != "Yes"){
                 cout << "Error: Branch not found." << endl;
+                continue;
             }
             payload.push_back("add_account_request_op");
             payload.push_back(Ucore.UserCode(User_idx));
