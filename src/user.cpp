@@ -20,6 +20,7 @@ typedef long double ld;
 #define mt make_tuple
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
+const double maximum_transaction = 10000000;
 
 
 string GetTime(){
@@ -391,7 +392,7 @@ int main(){
     string cmd;
     int User_idx = -1;
     int OTP;
-    auto start_time = chrono::high_resolution_clock::now();
+    auto OTP_start_time = chrono::high_resolution_clock::now();
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -810,9 +811,50 @@ int main(){
             OTP = rand() * rand();
             OTP = abs(OTP);
             OTP %= 1000000;
-            auto start_time = chrono::high_resolution_clock::now();
+            auto OTP_start_time = chrono::high_resolution_clock::now();
             cout << "OTP: " << OTP << '\n';
             cout << "expires in 120 seconds\n";
+        }
+        else if (cmd == "online_payment"){
+            double amount;
+            string from_account, to_account;
+            cin >> from_account >> to_account;
+            cin >> amount;
+            /*
+            //Login Check
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            */
+            vector <string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == from_account){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            cout << "Enter OTP:\n";
+            int entered_OTP;
+            cin >> entered_OTP;
+            if (entered_OTP != OTP){
+                cout << "Error: Invalid OTP.\n";
+                continue;
+            }
+            auto now_time = chrono::high_resolution_clock::now();
+            double time_since_OTP_request = chrono::duration<double>(now_time - OTP_start_time);
+            if (time_since_OTP_request > 120){
+                cout << "Error: OTP expired.\n";
+                continue;
+            }
+            if (amount > maximum_transaction){
+                cout << "Error: transaction limit exceeded.\n";
+                continue;
+            }
         }
         else {
             cout << "Error: Unknown command" << endl;
