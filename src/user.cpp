@@ -377,6 +377,8 @@ bool isError(string &result){
 }
 
 int main(){
+    //i used time(nullptr) insted of 0 cause it'll make OTP different with the other
+    srand(time(nullptr));
     ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     int compile_status = system("g++ admin.cpp -o admin");
     if(compile_status != 0){
@@ -388,6 +390,8 @@ int main(){
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
+    int OTP;
+    auto start_time = chrono::high_resolution_clock::now();
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -782,7 +786,35 @@ int main(){
             }
             cout << endl;
         }
-        else{
+        else if (cmd == "request_OTP"){
+            string account_id;
+            cin >> account_id;
+            /*
+            //Login Check
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            */
+            vector <string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            OTP = rand() * rand();
+            OTP = abs(OTP);
+            OTP %= 1000000;
+            auto start_time = chrono::high_resolution_clock::now();
+            cout << "OTP: " << OTP << '\n';
+            cout << "expires in 120 seconds\n";
+        }
+        else {
             cout << "Error: Unknown command" << endl;
         }
     }
