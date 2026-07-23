@@ -21,8 +21,6 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
-const double maximum_transaction = 10000000;
-
 
 string GetTime(){
     time_t now = time(0);
@@ -63,7 +61,6 @@ string GetTime(){
 struct User {
     vector<int> Request_Ids;
     vector<string> id;
-    vector <string> ibans;
     string codeMelli;
     string Hashpass;
     int score = 0;
@@ -143,29 +140,7 @@ class USER_Core{
         USER_Core(){
             read_users();
         }
-        int mod97(const string &s) {
-            int rem = 0;
-            for (char c : s){
-                rem = (rem * 10 + (c - '0')) % 97;
-            }
-            return rem;
-        } 
-        string add_iban(int user_index, int account_index){
-            if (Users[user_index].ibans.size() < Users[user_index].id.size()){
-                Users[user_index].ibans.resize(Users[user_index].id.size());
-            }
-            string body = "000000" + Users[user_index].id[account_index];
-            string num = body + "182700";
-            int check = 98 - mod97(num);
-            string iban = "IR";
-            if (check < 10){
-                iban += "0";
-            }
-            iban += to_string(check);
-            iban += body;
-            Users[user_index].ibans[account_index] = iban;
-            return iban;
-        }
+
         vector<string> AccList(int idx){
             return Users[idx].id;
         }
@@ -402,7 +377,6 @@ bool isError(string &result){
 }
 
 int main(){
-    srand(0);
     ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     int compile_status = system("g++ admin.cpp -o admin");
     if(compile_status != 0){
@@ -414,8 +388,6 @@ int main(){
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
-    int OTP;
-    auto OTP_start_time = chrono::high_resolution_clock::now();
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -475,9 +447,8 @@ int main(){
             result = runAdmin(payload);
             auto Res = Translate(result);
             payload.clear();
-            if(Res[0] != "Yes"){
+            if(Res[0] == "No"){
                 cout << "Error: Branch not found." << endl;
-                continue;
             }
             payload.push_back("add_account_request_op");
             payload.push_back(Ucore.UserCode(User_idx));
@@ -811,98 +782,10 @@ int main(){
             }
             cout << endl;
         }
-        else if (cmd == "request_OTP"){
-            string account_id;
-            cin >> account_id;
-            vector <string> Accs = Ucore.AccList(User_idx);
-            bool belong_to = false;
-            for (auto& name : Accs){
-                if (name == account_id){
-                    belong_to = true;
-                }
-            }
-            if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
-                continue;
-            }
-            OTP = rand() * rand();
-            OTP = abs(OTP);
-            OTP %= 1000000;
-            auto start_time = chrono::high_resolution_clock::now();
-            cout << "OTP: " << OTP << '\n';
-            cout << "expires in 120 seconds\n";
-        }
-        else if (cmd == "online_payment"){
-            double amount;
-            string from_account, to_account;
-            cin >> from_account >> to_account;
-            cin >> amount;
-            vector <string> Accs = Ucore.AccList(User_idx);
-            bool belong_to = false;
-            for (auto& name : Accs){
-                if (name == from_account){
-                    belong_to = true;
-                }
-            }
-            if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
-                continue;
-            }
-            cout << "Enter OTP:\n";
-            int entered_OTP;
-            cin >> entered_OTP;
-            if (entered_OTP != OTP){
-                cout << "Error: Invalid OTP.\n";
-                continue;
-            }
-            auto now_time = chrono::high_resolution_clock::now();
-            double time_since_OTP_request = chrono::duration<double>(now_time - OTP_start_time).count();
-            if (time_since_OTP_request > 120){
-                cout << "Error: OTP expired.\n";
-                continue;
-            }
-            if (amount > maximum_transaction){
-                cout << "Error: transaction limit exceeded.\n";
-                continue;
-            }
-            payload.push_back("transfer_op");
-            payload.push_back(from_account);
-            payload.push_back(to_account);
-            payload.push_back(to_string(amount));
-            runAdmin(payload);
-        }
-        else if (cmd == "show_iban"){
-            string account_id;
-            cin >> account_id;
-            int account_index;
-            vector <string> Accs = Ucore.AccList(User_idx);
-            bool belong_to = false;
-            for (int i = 0; i < Accs.size(); ++ i){
-                if (Accs[i] == account_id){
-                    belong_to = true;
-                    account_index = i;
-                }
-            }
-            if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
-                continue;
-            }
-            string iban = Ucore.add_iban(User_idx, account_index);
-            cout << "IBAN: IR12 " << iban << '\n';
-        }
-        else if (cmd == "paya_transfer"){
-            string from_account, to_account, iban;
-            double amount;
-            cin >> from_account >> iban >> amount;
-            payload.push_back("create_paya");
-            payload.push_back(from_account);
-            payload.push_back(iban);
-            payload.push_back(to_string(amount));
-            cout << runAdmin(payload) << '\n';
-        }
-        else {
+        else{
             cout << "Error: Unknown command" << endl;
         }
     }
     Ucore.write_users();
+    
 }
