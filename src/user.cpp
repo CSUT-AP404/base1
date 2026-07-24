@@ -901,8 +901,41 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
-            cout << Ucore.add_iban(User_idx, account_index) << endl;
+            cout << "IBAN: " << Ucore.add_iban(User_idx, account_index) << endl;
         }
+        else if (cmd == "paya_transfer"){
+            string from_account, destination_iban, pass;
+            double amount;
+            cin >> from_account >> destination_iban;
+            cout << "Enter account password: " << endl;
+            cin >> pass;
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == from_account){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: source Account does not belong to user." << endl;
+                continue;
+            }
+            if (amount > maximum_transaction_paya){
+                cout << "Error: Transaction limit exceeded." << endl;
+                continue;
+            }
+            payload.push_back("paya_transfer");
+            payload.push_back(from_account);
+            payload.push_back(destination_iban);
+            payload.push_back(to_string(amount));
+            payload.push_back(pass);
+            runAdmin(payload);
+        }
+
         else {
             cout << "Error: Unknown command" << endl;
         }
