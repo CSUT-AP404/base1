@@ -20,8 +20,9 @@ typedef long double ld;
 #define mt make_tuple
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
-const double maximum_transaction = 10000000;
-
+const double maximum_transaction_online = 10000;
+const double maximum_transaction_normal = 100000;
+const double maximum_transaction_paya = 10000000;
 
 string GetTime(){
     time_t now = time(0);
@@ -723,6 +724,10 @@ int main(){
             }
             if (!belong_to){
                 cout << "Error: source Account does not belong to user." << endl;
+                continue;
+            }
+            if (amount > maximum_transaction_normal){
+                cout << "Error: Transaction limit exceeded." << endl;
                 continue;
             }
             payload.push_back("transfer_op");
