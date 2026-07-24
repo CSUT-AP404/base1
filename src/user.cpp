@@ -60,6 +60,12 @@ string GetTime(){
     Time += Sec;
     return Time; 
 };
+
+std::string removeDashes(std::string input) {
+    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
+    return input;
+}
+
 struct User {
     vector <int> Request_Ids;
     vector <string> id;
@@ -171,7 +177,8 @@ class USER_Core{
         string add_iban(int user_index, int account_index){
             if (Users[user_index].ibans.size() < Users[user_index].id.size())
                 Users[user_index].ibans.resize(Users[user_index].id.size());
-            string body = "000000" + Users[user_index].id[account_index];
+            string clean_id = removeDashes(Users[user_index].id[account_index]);
+            string body = "000000" + clean_id;
             string num = body + "182700";
             int check = 98 - mod97(num);
             string iban = "IR";
@@ -428,11 +435,6 @@ bool isError(string &result){
         }
     }
     return false;
-}
-
-std::string removeDashes(std::string input) {
-    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
-    return input;
 }
 
 int main(){
@@ -939,13 +941,14 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
-            account_id = removeDashes(account_id);
+            //account_id = removeDashes(account_id);
             cout << "IBAN: " << Ucore.add_iban(User_idx, account_index) << endl;
         }
         else if (cmd == "paya_transfer"){
             string from_account, destination_iban, pass;
             double amount;
             cin >> from_account >> destination_iban >> amount;
+            //destination_iban = removeDashes(destination_iban);
             cout << "Enter account password: " << endl;
             cin >> pass;
             if (User_idx == -1){

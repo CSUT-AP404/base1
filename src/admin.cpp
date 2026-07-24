@@ -644,6 +644,7 @@ class Core{
         }
         string get_id_from_iban (string id){
             for(int i = 0; i < FAccounts.size(); ++ i){
+                cout << FAccounts[i].getIBAN() << " " << FAccounts[i].get_account_id() << endl;
                 if (FAccounts[i].getIBAN() == id){
                      return FAccounts[i].get_account_id();
                 }
@@ -948,6 +949,7 @@ class Core{
             }
         }
         void Deposit(string &Num, ld val){
+            cout << Num << " --" << endl;
             Account_Id AI(Num);
             for(auto &A : BAccounts){
                 if(AI == A.getID()){
@@ -956,6 +958,7 @@ class Core{
                 }
             }
             for(auto &A : FAccounts){
+                cout << AI.strid() << " " << A.getID().strid() << endl;
                 if(AI == A.getID()){
                     Transaction T("DEPOSIT", Trans_Cnt++, val, A.getCoin() + val, Num, Num);
                     cout << "Transaction ID: " << T.ID << '\n';
@@ -1551,6 +1554,11 @@ bool isAccNumber(string &name){
     return true;
 }
 
+std::string removeDashes(std::string input) {
+    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
+    return input;
+}
+
 int main(){
     //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     Core core;
@@ -1912,6 +1920,7 @@ int main(){
             double amount;
             string from_account, destination_iban, pass;
             cin >> from_account >> destination_iban >> amount >> pass;
+            cout << "get " << destination_iban << endl;
             int iban_index = core.IBANIDX(destination_iban);
             Paya_Request paya;
             paya.from_account= from_account;
@@ -1920,21 +1929,25 @@ int main(){
             paya.status = 0;
             paya.id = core.new_request (); // check
             core.add_paya(paya, pass);
+            continue;
         }
         else if (cmd == "list_paya_requests"){
             core.list_paya();
+            continue;
         }
         else if (cmd == "approve_paya"){
             int id;
             cin >> id;
             core.approve_paya(id);
             cout << "Paya approved. Transaction ID: " << id << '\n';
+            continue;
         }
         else if (cmd == "reject_paya"){
             int id;
             cin >> id;
             core.reject_paya(id);
             cout << "Paya rejected. Amount returned to source account.\n";
+            continue;
         }
         cout << "Error: Unknown command" << '\n';
     }
