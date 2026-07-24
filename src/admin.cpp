@@ -832,6 +832,7 @@ class Core{
             }
             Branches[branch_id].Requests[req_idx].status = 1;
             cout << "Request " << request_Id << " approved. Waiting for user activation." << '\n';
+            write();
         }
         void Reject_Request(int request_Id, string &Reason){
             auto [branch_Id, Tmp] = RequestIDXs(request_Id);

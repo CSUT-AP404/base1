@@ -430,6 +430,11 @@ bool isError(string &result){
     return false;
 }
 
+std::string removeDashes(std::string input) {
+    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
+    return input;
+}
+
 int main(){
     //i used time(nullptr) insted of 0 cause it'll make OTP different with the other
     srand(time(nullptr));
@@ -934,6 +939,7 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
+            account_id = removeDashes(account_id);
             cout << "IBAN: " << Ucore.add_iban(User_idx, account_index) << endl;
         }
         else if (cmd == "paya_transfer"){
