@@ -150,6 +150,9 @@ class USER_Core{
             write_users();
             return;
         }
+        int getOTP (int idx){
+            return Users[idx].OTP;
+        }
         long long GetOTPTime(int idx) {
             return Users[idx].OTP_start_time_in_MS;
         }
@@ -295,6 +298,11 @@ class USER_Core{
                 u.Hashpass = userr["pass"];
                 u.score = userr.value("score", 0);
                 u.signup_time = userr.value("signup_time", GetTime());
+                u.OTP = userr["OTP"];
+                u.OTP_start_time_in_MS = userr["OTP_start_time_in_MS"];
+                for(auto &iban : userr["ibans"]){
+                    u.ibans.push_back(iban);
+                }
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }
@@ -314,6 +322,10 @@ class USER_Core{
             for(auto &acc : userr.id){
                 jAccs.push_back(acc);
             }
+            json jibans = json::array();
+            for(auto &iban : userr.id){
+                jibans.push_back(iban);
+            }
             json jRequests = json::array();
             for(auto &R : userr.Request_Ids){
                 jRequests.push_back(R);
@@ -324,7 +336,10 @@ class USER_Core{
                 {"score", userr.score},
                 {"signup_time", userr.signup_time},
                 {"accounts", jAccs},
-                {"request_ids", jRequests}
+                {"request_ids", jRequests},
+                {"OTP", userr.OTP},
+                {"OTP_start_time_in_MS", userr.OTP_start_time_in_MS},
+                {"ibans", jibans}
             });
         }
         j["users"] = jUsers;
@@ -845,10 +860,10 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
-            OTP = rand() * rand();
+            int OTP = rand() * rand();
             OTP = abs(OTP);
             OTP %= 1000000;
-            auto start = std::chrono::steady_clock::now();
+            Ucore.SetOTP(User_idx, OTP);
             long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
             Ucore.SetOTPTime(User_idx, OTP_start_time_in_MS);
             cout << "OTP: " << OTP << '\n';
@@ -877,7 +892,7 @@ int main(){
             cout << "Enter OTP:\n";
             int entered_OTP;
             cin >> entered_OTP;
-            if (entered_OTP != OTP){
+            if (entered_OTP != Ucore.getOTP(User_idx)){
                 cout << "Error: Invalid OTP.\n";
                 continue;
             }
