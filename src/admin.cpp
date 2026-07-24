@@ -279,6 +279,9 @@ class Account{
         string getIBAN () const{
             return IBAN;
         }
+        void setIBAN (const string &iban){
+            IBAN = iban;
+        }
 
         Account (int BankID, int N, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (BankID, N);
@@ -286,6 +289,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
+            make_IBAN ();
         }
         Account (int n1, int n2, int n3, int n4, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (n1, n2, n3, n4);
@@ -293,6 +297,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
+            make_IBAN ();
         }
         Account (string Str, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (Str);
@@ -300,6 +305,7 @@ class Account{
             this -> HashPass = HashPass;
             this -> Coin = Coin;
             this -> Active = Active;
+            make_IBAN ();
         }
         int get_transactions_size (){
             return History.size();
