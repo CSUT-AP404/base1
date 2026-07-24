@@ -276,6 +276,10 @@ class Account{
         string HashPass;
         bool Active;
 
+        string get_account_id (){
+            return AI.strid();
+        }
+
         string getIBAN () const{
             return IBAN;
         }
@@ -638,10 +642,20 @@ class Core{
             }
             return;
         }
+        string get_id_from_iban (string id){
+            for(int i = 0; i < FAccounts.size(); ++ i){
+                if (FAccounts[i].getIBAN() == id){
+                     return FAccounts[i].get_account_id();
+                }
+            }
+            return "";
+        }
         void approve_paya (int payaid){
             for (int i = 0; i < paya_requests.size(); ++ i){
                 if (paya_requests[i].id == payaid){
                     paya_requests[i].status = 1;
+                    string id = get_id_from_iban(paya_requests[i].destination_iban);
+                    Deposit (id, paya_requests[i].amount);
                     break;
                 }
             }
