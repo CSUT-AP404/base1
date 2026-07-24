@@ -505,6 +505,7 @@ int main(){
             payload.clear();
             if(Res[0] == "No"){
                 cout << "Error: Branch not found." << endl;
+                continue;
             }
             payload.push_back("add_account_request_op");
             payload.push_back(Ucore.UserCode(User_idx));
