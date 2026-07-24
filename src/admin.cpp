@@ -1029,6 +1029,48 @@ class Core{
             }
             cout << "Error: Account not found." << '\n';
         }
+        void Transfer_no_password (string &Num1, string &Num2, ld val){
+            Account_Id AI1(Num1), AI2(Num2);
+            for(auto &A : BAccounts){
+                if(AI1 == A.getID()){
+                    cout << "Error: Account is inactive." << '\n';
+                    return;
+                }
+                if(AI2 == A.getID()){
+                    cout << "Error: Destination account is inactive" << '\n';
+                    return;
+                }
+            }
+            int j = -1;
+            for(int i = 0, sz = (int)FAccounts.size(); i < sz; i++){
+                if(AI2 == FAccounts[i].getID()){
+                    j = i;
+                    break;
+                }
+            }
+            if(j == -1){
+                cout << "Error: Destination account not found." << '\n';
+                return;
+            }
+            for(auto &A : FAccounts){
+                if(AI1 == A.getID()){
+                    if(A.getCoin() < val){
+                        cout << "Error: Insufficient funds." << '\n';
+                        return;
+                    }
+                    Transaction T1("TRANSFER", Trans_Cnt, -val, A.getCoin() - val, Num1, Num2);
+                    Transaction T2("TRANSFER", Trans_Cnt++, val, FAccounts[j].getCoin() + val, Num1, Num2);
+                    cout << "Transaction ID: " << T1.ID << '\n';
+                    cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << '\n';
+                    A.WITHDRAWAL(val, T1);
+                    FAccounts[j].Deposit(val, T2);
+                    Trans.push_back(T1);
+                    write();
+                    return;
+                }
+            }
+            cout << "Error: Account not found." << '\n';
+        }
         void give_balance(int idx, bool isBlocked, bool SPECIAL = 0){
             if(!isBlocked){
                 if(SPECIAL == 0 && FAccounts[idx].getCoin() < balanceInquiryFee){
@@ -1772,6 +1814,25 @@ int main(){
                 continue;
             }
             core.Transfer(from, to, pass, val + core.Get_Transfer_Fee());
+            continue ; 
+        }
+        else if (cmd =="transfer_op_no_password"){
+            string from, to; 
+            double val;
+            cin >> from >> to >> val;
+            if(val <= 0){
+                cout << "Error: Amount must be positive." << '\n';
+                continue;
+            }
+            if(!isAccNumber(from)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
+            if(!isAccNumber(to)){
+                cout << "Error: Invalid account number." << '\n';
+                continue;
+            }
+            core.Transfer_no_password(from, to, val + core.Get_Transfer_Fee());
             continue ; 
         }
         /*-----------------------------------------------------------------------*/
