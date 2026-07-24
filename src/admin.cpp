@@ -657,8 +657,9 @@ class Core{
             }
             return;
         }
-        int get_request_cnt (){
+        int new_request (){
             Request_Cnt ++;
+            write ();
             return Request_Cnt;
         }
         void add_paya (Paya_Request paya, string pass){
@@ -1304,6 +1305,15 @@ class Core{
             T.Destination = t["destination"];
             Trans.push_back(T);
         }
+        for (auto &p : j["paya"]){
+            Paya_Request paya;
+            paya.id = p["id"];
+            paya.from_account = p["from_account"];
+            paya.destination_iban = p["destination_iban"];
+            paya.amount = p["amount"].get<double>();
+            paya.status = p["status"];
+            paya_requests.push_back(paya);
+        }
     }
     void write(){
         json j ; 
@@ -1379,6 +1389,17 @@ class Core{
         }
         j["closed_accounts"] = jBAccounts; 
 
+        json jpaya = json::array();
+        for (auto &p : paya_requests){
+            jpaya.push_back({
+                {"id", p.id},
+                {"from_account", p.from_account},
+                {"destination_iban", p.destination_iban},
+                {"amount", p.amount},
+                {"status", p.status}
+            });
+        }
+
         json jTrans = json::array();
         for(auto &T : Trans){
             jTrans.push_back({
@@ -1391,6 +1412,7 @@ class Core{
                 {"destination", T.Destination}
             });
         }
+        j["paya"] = jpaya;
         j["transactions"] = jTrans;
         j["Account_Cnt"] = Account_Cnt;
         j["Trans_Cnt"]   = Trans_Cnt;
@@ -1820,7 +1842,7 @@ int main(){
             paya.destination_iban = destination_iban;
             paya.amount = amount;
             paya.status = 0;
-            paya.id = core.get_request_cnt (); // check
+            paya.id = core.new_request (); // check
             core.add_paya(paya, pass);
         }
         else if (cmd == "list_paya_requests"){
