@@ -405,7 +405,7 @@ bool isError(string &result){
 int main(){
     //i used time(nullptr) insted of 0 cause it'll make OTP different with the other
     srand(time(nullptr));
-    ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
+    //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     int compile_status = system("g++ admin.cpp -o admin");
     if(compile_status != 0){
         cout << "Error: Core system has some bug" << endl;

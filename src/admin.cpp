@@ -623,7 +623,49 @@ class Core{
         }
     public:
         int BankID;
-        
+        string getstatus (int i){
+            if (i == 0){
+                return "pending";
+            }
+            if (i == 1){
+                return "approved";
+            }
+            return "rejected";
+        }
+        void list_paya (){
+            for (int i = 0; i < paya_requests.size(); ++ i){
+                cout << paya_requests[i].from_account << " " << paya_requests[i].destination_iban << " " << paya_requests[i].amount << " " << getstatus(paya_requests[i].status) << paya_requests[i].id << endl;
+            }
+            return;
+        }
+        void approve_paya (int payaid){
+            for (int i = 0; i < paya_requests.size(); ++ i){
+                if (paya_requests[i].id == payaid){
+                    paya_requests[i].status = 1;
+                    break;
+                }
+            }
+            return;
+        }
+        void reject_paya (int payaid){
+            for (int i = 0; i < paya_requests.size(); ++ i){
+                if (paya_requests[i].id == payaid){
+                    paya_requests[i].status = 2;
+                    Deposit (paya_requests[i].from_account, paya_requests[i].amount);
+                    break;
+                }
+            }
+            return;
+        }
+        int get_request_cnt (){
+            Request_Cnt ++;
+            return Request_Cnt;
+        }
+        void add_paya (Paya_Request paya, string pass){
+            paya_requests.push_back(paya);
+            WITHDRAWAL (paya.from_account, pass, paya.amount);
+        }
+
         int IBANIDX (string &iban){
            for(int i = 0; i < FAccounts.size(); ++ i){
                 if (FAccounts[i].getIBAN() == iban){
@@ -939,6 +981,7 @@ class Core{
             }
             cout << "Error: Account not found." << '\n';
         }
+
         void Transfer(string &Num1, string &Num2, string &Pass, ld val){
             Account_Id AI1(Num1), AI2(Num2);
             for(auto &A : BAccounts){
@@ -1430,7 +1473,7 @@ bool isAccNumber(string &name){
 }
 
 int main(){
-    ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
+    //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     Core core;
     string cmd;
     while(cin >> cmd){
@@ -1769,9 +1812,31 @@ int main(){
         }
         else if (cmd == "paya_transfer"){
             double amount;
-            string from_account, destination_iban;
-            cin >> from_account >> destination_iban >> amount;
-            
+            string from_account, destination_iban, pass;
+            cin >> from_account >> destination_iban >> amount >> pass;
+            int iban_index = core.IBANIDX(destination_iban);
+            Paya_Request paya;
+            paya.from_account= from_account;
+            paya.destination_iban = destination_iban;
+            paya.amount = amount;
+            paya.status = 0;
+            paya.id = core.get_request_cnt (); // check
+            core.add_paya(paya, pass);
+        }
+        else if (cmd == "list_paya_requests"){
+            core.list_paya();
+        }
+        else if (cmd == "approve_paya"){
+            int id;
+            cin >> id;
+            core.approve_paya(id);
+            cout << "Paya approved. Transaction ID: " << id << '\n';
+        }
+        else if (cmd == "reject_paya"){
+            int id;
+            cin >> id;
+            core.reject_paya(id);
+            cout << "Paya rejected. Amount returned to source account.\n";
         }
         cout << "Error: Unknown command" << '\n';
     }
