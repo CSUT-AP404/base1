@@ -901,7 +901,7 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
-            Ucore.add_iban(User_idx, account_index);
+            cout << Ucore.add_iban(User_idx, account_index) << endl;
         }
         else {
             cout << "Error: Unknown command" << endl;
