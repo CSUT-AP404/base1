@@ -61,8 +61,9 @@ string GetTime(){
     return Time; 
 };
 struct User {
-    vector<int> Request_Ids;
-    vector<string> id;
+    vector <int> Request_Ids;
+    vector <string> id;
+    vector <string> ibans; // save
     string codeMelli;
     string Hashpass;
     int score = 0;
@@ -141,6 +142,29 @@ class USER_Core{
     public :
         USER_Core(){
             read_users();
+        }
+
+        int mod97(const string &s){
+            int rem = 0;
+            for (char c : s){
+                rem = (rem * 10 + (c - '0')) % 97;
+            }
+            return rem;
+        }
+
+        string add_iban(int user_index, int account_index){
+            if (Users[user_index].ibans.size() < Users[user_index].id.size())
+                Users[user_index].ibans.resize(Users[user_index].id.size());
+            string body = "000000" + Users[user_index].id[account_index];
+            string num = body + "182700";
+            int check = 98 - mod97(num);
+            string iban = "IR";
+            if (check < 10)
+                iban += "0";
+            iban += to_string(check);
+            iban += body;
+            Users[user_index].ibans[account_index] = iban;
+            return iban;
         }
 
         vector<string> AccList(int idx){
@@ -393,7 +417,7 @@ int main(){
     string cmd;
     int User_idx = -1;
     int OTP;
-    auto OTP_start_time = chrono::high_resolution_clock::now();
+    long long OTP_start_time_in_MS = 0;
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -795,13 +819,10 @@ int main(){
         else if (cmd == "request_OTP"){
             string account_id;
             cin >> account_id;
-            /*
-            //Login Check
             if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-            */
             vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
@@ -816,7 +837,8 @@ int main(){
             OTP = rand() * rand();
             OTP = abs(OTP);
             OTP %= 1000000;
-            auto OTP_start_time = chrono::high_resolution_clock::now();
+            auto start = std::chrono::steady_clock::now();
+            OTP_start_time_in_MS = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count(); // save
             cout << "OTP: " << OTP << '\n';
             cout << "expires in 120 seconds\n";
         }
@@ -825,13 +847,10 @@ int main(){
             string from_account, to_account;
             cin >> from_account >> to_account;
             cin >> amount;
-            /*
-            //Login Check
             if (User_idx == -1){
                 cout << "Error: No user logged in." << endl;
                 continue;
             }
-            */
             vector <string> Accs = Ucore.AccList(User_idx);
             bool belong_to = false;
             for (auto& name : Accs){
@@ -850,16 +869,39 @@ int main(){
                 cout << "Error: Invalid OTP.\n";
                 continue;
             }
-            auto now_time = chrono::high_resolution_clock::now();
-            double time_since_OTP_request = chrono::duration<double>(now_time - OTP_start_time);
-            if (time_since_OTP_request > 120){
+            auto start = std::chrono::steady_clock::now();
+            long long now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+            if (now_time - OTP_start_time_in_MS > 120 * 1000){
                 cout << "Error: OTP expired.\n";
                 continue;
             }
-            if (amount > maximum_transaction){
+            if (amount > maximum_transaction_online){
                 cout << "Error: transaction limit exceeded.\n";
                 continue;
             }
+        }
+        else if (cmd == "show_iban"){
+            string account_id;
+            cin >> account_id;
+            if (User_idx == -1){
+                cout << "Error: No user logged in." << endl;
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(User_idx);
+            bool belong_to = false;
+            int account_index;
+            for (int i = 0; i < Accs.size(); ++ i){
+                if (Accs[i] == account_id){
+                    belong_to = true;
+                    account_index = i;
+                    break;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << endl;
+                continue;
+            }
+            Ucore.add_iban(User_idx, account_index);
         }
         else {
             cout << "Error: Unknown command" << endl;
