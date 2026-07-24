@@ -323,7 +323,7 @@ class USER_Core{
                 jAccs.push_back(acc);
             }
             json jibans = json::array();
-            for(auto &iban : userr.id){
+            for(auto &iban : userr.ibans){
                 jibans.push_back(iban);
             }
             json jRequests = json::array();
@@ -905,6 +905,12 @@ int main(){
                 cout << "Error: transaction limit exceeded.\n";
                 continue;
             }
+            payload.push_back("transfer_op_no_password");
+            payload.push_back(from_account);
+            payload.push_back(to_account);
+            payload.push_back(to_string(amount));
+            result = runAdmin(payload);
+            cout << result << endl;
         }
         else if (cmd == "show_iban"){
             string account_id;
@@ -932,7 +938,7 @@ int main(){
         else if (cmd == "paya_transfer"){
             string from_account, destination_iban, pass;
             double amount;
-            cin >> from_account >> destination_iban;
+            cin >> from_account >> destination_iban >> amount;
             cout << "Enter account password: " << endl;
             cin >> pass;
             if (User_idx == -1){
