@@ -68,7 +68,8 @@ struct User {
     string Hashpass;
     int score = 0;
     string signup_time;
-
+    long long OTP_start_time_in_MS = 0;
+    int OTP;
     User(){}
     User(string codeMelli, string Hashpass){
         this->codeMelli = codeMelli ;
@@ -140,6 +141,18 @@ class USER_Core{
             return "Diamond";
         }
     public :
+        void SetOTPTime (int idx, long long t) {
+            Users[idx].OTP_start_time_in_MS = t;
+            write_users();
+        }
+        void SetOTP (int idx, int otp){
+            Users[idx].OTP = otp;
+            write_users();
+            return;
+        }
+        long long GetOTPTime(int idx) {
+            return Users[idx].OTP_start_time_in_MS;
+        }
         USER_Core(){
             read_users();
         }
@@ -416,8 +429,6 @@ int main(){
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
-    int OTP;
-    long long OTP_start_time_in_MS = 0;
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -838,7 +849,8 @@ int main(){
             OTP = abs(OTP);
             OTP %= 1000000;
             auto start = std::chrono::steady_clock::now();
-            OTP_start_time_in_MS = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count(); // save
+            long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+            Ucore.SetOTPTime(User_idx, OTP_start_time_in_MS);
             cout << "OTP: " << OTP << '\n';
             cout << "expires in 120 seconds\n";
         }
@@ -869,9 +881,8 @@ int main(){
                 cout << "Error: Invalid OTP.\n";
                 continue;
             }
-            auto start = std::chrono::steady_clock::now();
-            long long now_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
-            if (now_time - OTP_start_time_in_MS > 120 * 1000){
+            long long now_time = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+            if (now_time - Ucore.GetOTPTime(User_idx) > 120 * 1000){
                 cout << "Error: OTP expired.\n";
                 continue;
             }
