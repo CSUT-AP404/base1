@@ -21,6 +21,11 @@ typedef long double ld;
 struct Account_Id{
     int n[4];
 
+    string strid (){
+        string s1 = to_string(n[0]), s2 = to_string(n[1]), s3 = to_string(n[2]), s4 = to_string(n[3]);
+        return s1 + s2 + s3 + s4;
+    }
+
     Account_Id (){
         for(int i = 0; i < 4; i++){
             n[i] = 0;
@@ -247,9 +252,33 @@ class Account{
         int Branch_Id;
         ld Coin;
         vector<Transaction> History;
+        string IBAN; // save
+        int mod97 (const string &s){
+            int rem = 0;
+            for (char c : s){
+                rem = (rem * 10 + (c - '0')) % 97;
+            }
+            return rem;
+        } 
+        void make_IBAN (){
+            string body = "000000" + AI.strid();
+            string num = body + "182700";
+            int check = 98 - mod97(num);
+            string iban = "IR";
+            if (check < 10){
+                iban += "0";
+            }
+            iban += to_string(check);
+            iban += body;
+            IBAN = iban;
+        }
     public:
         string HashPass;
         bool Active;
+
+        string getIBAN () const{
+            return IBAN;
+        }
 
         Account (int BankID, int N, int Branch_Id, string HashPass, ld Coin = 0, bool Active = true){
             AI = Account_Id (BankID, N);
@@ -491,10 +520,18 @@ bool compare(string pass, string input){
         return true ;
     return false ; 
 }
+struct Paya_Request {
+    int id;
+    string from_account;
+    string destination_iban;
+    long double amount;
+    int status;          // 0=pending 1=approved 2=rejected
+};
 /*----------------------------------------------------------------------*/
 struct User {
     vector<int> Request_Ids;
     vector<string> id;
+    vector <string> ibans;
     string codeMelli;
     string Hashpass;
     int score = 0;
@@ -532,6 +569,7 @@ class Core{
         vector<Account> FAccounts;
         vector<Account> BAccounts;
         vector<Transaction> Trans;
+        vector<Paya_Request> paya_requests; // save
         int Account_Cnt, Trans_Cnt, Request_Cnt;
         ld transferFee, balanceInquiryFee;
 
@@ -579,6 +617,15 @@ class Core{
         }
     public:
         int BankID;
+        
+        int IBANIDX (string &iban){
+           for(int i = 0; i < FAccounts.size(); ++ i){
+                if (FAccounts[i].getIBAN() == iban){
+                     return i;
+                }
+            }
+            return -1;
+        }
 
         Core(int BankID = 5022){
             this -> BankID = BankID;
@@ -1713,6 +1760,12 @@ int main(){
         else if(cmd == "reset_all"){
             core.reset_all();
             continue ; 
+        }
+        else if (cmd == "paya_transfer"){
+            double amount;
+            string from_account, destination_iban;
+            cin >> from_account >> destination_iban >> amount;
+            
         }
         cout << "Error: Unknown command" << '\n';
     }
