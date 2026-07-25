@@ -18,6 +18,12 @@ typedef long double ld;
 #define all(x) (x).begin(), (x).end()
 
 /*----------------------------------------------------*/
+
+std::string removeDashes(std::string input) {
+    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
+    return input;
+}
+
 struct Account_Id{
     int n[4];
 
@@ -971,14 +977,14 @@ class Core{
             ///cout << endl << Num << " --" << endl;
             Account_Id AI(Num);
             for(auto &A : BAccounts){
-                if(Num == A.getID().strid()){
+                if(removeDashes(Num) == A.getID().strid()){
                     cout << "Error: Account is inactive." << '\n';
                     return;
                 }
             }
             for(auto &A : FAccounts){
                 ///cout << AI.strid() << " " << A.getID().strid() << endl;
-                if(Num == A.getID().strid()){
+                if(removeDashes(Num) == A.getID().strid()){
                     Transaction T("DEPOSIT", Trans_Cnt++, val, A.getCoin() + val, Num, Num);
                     cout << "Transaction ID: " << T.ID << '\n';
                     cout << fixed << setprecision(2) << "New balance: " << A.getCoin() + val << '\n';
@@ -993,13 +999,13 @@ class Core{
         int WITHDRAWAL(string &Num, string &Pass, ld val){
             Account_Id AI(Num);
             for(auto &A : BAccounts){
-                if(AI == A.getID()){
+                if(removeDashes(Num) == A.getID().strid()){
                     cout << "Error: Account is inactive." << '\n';
                     return 1;
                 }
             }
             for(auto &A : FAccounts){
-                if(AI == A.getID()){
+                if(removeDashes(Num) == A.getID().strid()){
                     if(!compare(A.HashPass, Pass)){
                         cout << "Error: Wrong password." << '\n'; 
                         return 1;
@@ -1574,14 +1580,10 @@ bool isAccNumber(string &name){
     return true;
 }
 
-std::string removeDashes(std::string input) {
-    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
-    return input;
-}
-
 int main(){
     //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     Core core;
+    core.read();
     string cmd;
     while(cin >> cmd){
         if(cmd=="EOF"){
@@ -1697,7 +1699,7 @@ int main(){
             core.Close_Account(pass, id);
             continue ; 
         }
-        else if(cmd == "delete_account"){
+        else if (cmd == "delete_account"){
             string id; 
             cin >> id;
             cout << "Enter password:" << '\n';
@@ -1940,7 +1942,7 @@ int main(){
             double amount;
             string from_account, destination_iban, pass;
             cin >> from_account >> destination_iban >> amount >> pass;
-            cout << "get " << destination_iban << endl;
+            //cout << "get " << destination_iban << endl;
             int iban_index = core.IBANIDX(destination_iban);
             Paya_Request paya;
             paya.from_account= from_account;
