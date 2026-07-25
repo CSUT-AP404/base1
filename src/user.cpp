@@ -975,7 +975,7 @@ int main(){
             payload.push_back(destination_iban);
             payload.push_back(to_string(amount));
             payload.push_back(pass);
-            runAdmin(payload);
+            cout << runAdmin(payload);
         }
 
         else {

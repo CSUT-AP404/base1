@@ -679,7 +679,11 @@ class Core{
         }
         void add_paya (Paya_Request paya, string pass){
             paya_requests.push_back(paya);
-            WITHDRAWAL (paya.from_account, pass, paya.amount);
+            int status = WITHDRAWAL (paya.from_account, pass, paya.amount);
+            if (status){
+                //Deposit (paya.from_account, paya.amount);
+                paya_requests.pop_back();
+            }
         }
 
         int IBANIDX (string &iban){
@@ -949,17 +953,17 @@ class Core{
             }
         }
         void Deposit(string &Num, ld val){
-            cout << Num << " --" << endl;
+            ///cout << endl << Num << " --" << endl;
             Account_Id AI(Num);
             for(auto &A : BAccounts){
-                if(AI == A.getID()){
+                if(Num == A.getID().strid()){
                     cout << "Error: Account is inactive." << '\n';
                     return;
                 }
             }
             for(auto &A : FAccounts){
-                cout << AI.strid() << " " << A.getID().strid() << endl;
-                if(AI == A.getID()){
+                ///cout << AI.strid() << " " << A.getID().strid() << endl;
+                if(Num == A.getID().strid()){
                     Transaction T("DEPOSIT", Trans_Cnt++, val, A.getCoin() + val, Num, Num);
                     cout << "Transaction ID: " << T.ID << '\n';
                     cout << fixed << setprecision(2) << "New balance: " << A.getCoin() + val << '\n';
@@ -971,23 +975,23 @@ class Core{
             }
             cout << "Error: Account not found." << '\n';
         }
-        void WITHDRAWAL(string &Num, string &Pass, ld val){
+        int WITHDRAWAL(string &Num, string &Pass, ld val){
             Account_Id AI(Num);
             for(auto &A : BAccounts){
                 if(AI == A.getID()){
                     cout << "Error: Account is inactive." << '\n';
-                    return;
+                    return 1;
                 }
             }
             for(auto &A : FAccounts){
                 if(AI == A.getID()){
                     if(!compare(A.HashPass, Pass)){
                         cout << "Error: Wrong password." << '\n'; 
-                        return;
+                        return 1;
                     }
                     if(A.getCoin() < val){
                         cout << "Error: Insufficient funds." << '\n';
-                        return;
+                        return 1;
                     }
                     Transaction T("WITHDRAWAL", Trans_Cnt++, -val, A.getCoin() - val, Num, Num);
                     cout << "Transaction ID: " << T.ID << '\n';
@@ -995,10 +999,11 @@ class Core{
                     A.WITHDRAWAL(val, T);
                     Trans.push_back(T);
                     write();
-                    return;
+                    return 0;
                 }
             }
             cout << "Error: Account not found." << '\n';
+            return 1;
         }
 
         void Transfer(string &Num1, string &Num2, string &Pass, ld val){
