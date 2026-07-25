@@ -638,25 +638,35 @@ class Core{
         }
         void list_paya (){
             for (int i = 0; i < paya_requests.size(); ++ i){
-                cout << paya_requests[i].from_account << " " << paya_requests[i].destination_iban << " " << paya_requests[i].amount << " " << getstatus(paya_requests[i].status) << paya_requests[i].id << endl;
+                cout << paya_requests[i].from_account << " " << paya_requests[i].destination_iban << " " << paya_requests[i].amount << " " << getstatus(paya_requests[i].status) << " " << paya_requests[i].id << endl;
             }
             return;
         }
         string get_id_from_iban (string id){
             for(int i = 0; i < FAccounts.size(); ++ i){
-                cout << FAccounts[i].getIBAN() << " " << FAccounts[i].get_account_id() << endl;
+                //cout << FAccounts[i].getIBAN() << " " << FAccounts[i].get_account_id() << endl;
                 if (FAccounts[i].getIBAN() == id){
                      return FAccounts[i].get_account_id();
                 }
             }
-            return "";
+            return "NULL";
         }
         void approve_paya (int payaid){
             for (int i = 0; i < paya_requests.size(); ++ i){
                 if (paya_requests[i].id == payaid){
+                    if (paya_requests[i].status){
+                        cout << "Error: paya request is not pending." << endl;
+                        return;
+                    }
                     paya_requests[i].status = 1;
                     string id = get_id_from_iban(paya_requests[i].destination_iban);
+                    if (id == "NULL"){
+                        cout << "Error: no account exists with this IBAN." << endl;
+                        paya_requests[i].status = 0;
+                        return;
+                    }
                     Deposit (id, paya_requests[i].amount);
+                    cout << "Paya approved. Transaction ID: " << payaid << '\n';
                     break;
                 }
             }
@@ -665,8 +675,13 @@ class Core{
         void reject_paya (int payaid){
             for (int i = 0; i < paya_requests.size(); ++ i){
                 if (paya_requests[i].id == payaid){
+                    if (paya_requests[i].status){
+                        cout << "Error: paya request is not pending." << endl;
+                        return;
+                    }
                     paya_requests[i].status = 2;
                     Deposit (paya_requests[i].from_account, paya_requests[i].amount);
+                    cout << "Paya rejected. Amount returned to source account.\n";
                     break;
                 }
             }
@@ -1944,14 +1959,12 @@ int main(){
             int id;
             cin >> id;
             core.approve_paya(id);
-            cout << "Paya approved. Transaction ID: " << id << '\n';
             continue;
         }
         else if (cmd == "reject_paya"){
             int id;
             cin >> id;
             core.reject_paya(id);
-            cout << "Paya rejected. Amount returned to source account.\n";
             continue;
         }
         cout << "Error: Unknown command" << '\n';
