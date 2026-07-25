@@ -638,7 +638,7 @@ class Core{
         }
         void list_paya (){
             for (int i = 0; i < paya_requests.size(); ++ i){
-                cout << paya_requests[i].from_account << " " << paya_requests[i].destination_iban << " " << paya_requests[i].amount << " " << getstatus(paya_requests[i].status) << " " << paya_requests[i].id << endl;
+                cout << "Source Account " << paya_requests[i].from_account << endl << "Destination IBAN: " << paya_requests[i].destination_iban << endl << "Amount: " << paya_requests[i].amount << endl << "Status: " << getstatus(paya_requests[i].status) << endl << "Request ID: " << paya_requests[i].id << endl;
             }
             return;
         }
