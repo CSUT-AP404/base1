@@ -698,13 +698,15 @@ class Core{
             write ();
             return Request_Cnt;
         }
-        void add_paya (Paya_Request paya, string pass){
+        int add_paya (Paya_Request paya, string pass){
             paya_requests.push_back(paya);
-            int status = WITHDRAWAL (paya.from_account, pass, paya.amount);
+            int status = WITHDRAWAL_no_output (paya.from_account, pass, paya.amount);
             if (status){
                 //Deposit (paya.from_account, paya.amount);
                 paya_requests.pop_back();
+                return 1;
             }
+            return 0;
         }
 
         int IBANIDX (string &iban){
@@ -1017,6 +1019,37 @@ class Core{
                     Transaction T("WITHDRAWAL", Trans_Cnt++, -val, A.getCoin() - val, Num, Num);
                     cout << "Transaction ID: " << T.ID << '\n';
                     cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << '\n';
+                    A.WITHDRAWAL(val, T);
+                    Trans.push_back(T);
+                    write();
+                    return 0;
+                }
+            }
+            cout << "Error: Account not found." << '\n';
+            return 1;
+        }
+        
+        int WITHDRAWAL_no_output (string &Num, string &Pass, ld val){
+            Account_Id AI(Num);
+            for(auto &A : BAccounts){
+                if(removeDashes(Num) == A.getID().strid()){
+                    cout << "Error: Account is inactive." << '\n';
+                    return 1;
+                }
+            }
+            for(auto &A : FAccounts){
+                if(removeDashes(Num) == A.getID().strid()){
+                    if(!compare(A.HashPass, Pass)){
+                        cout << "Error: Wrong password." << '\n'; 
+                        return 1;
+                    }
+                    if(A.getCoin() < val){
+                        cout << "Error: Insufficient funds." << '\n';
+                        return 1;
+                    }
+                    Transaction T("WITHDRAWAL", Trans_Cnt++, -val, A.getCoin() - val, Num, Num);
+                    //cout << "Transaction ID: " << T.ID << '\n';
+                    //cout << fixed << setprecision(2) << "New balance: " << A.getCoin() - val << '\n';
                     A.WITHDRAWAL(val, T);
                     Trans.push_back(T);
                     write();
@@ -1950,7 +1983,13 @@ int main(){
             paya.amount = amount;
             paya.status = 0;
             paya.id = core.new_request (); // check
-            core.add_paya(paya, pass);
+            int ret = core.add_paya(paya, pass);
+            if (ret){
+                continue;
+            }
+            cout << "Paya request registered" << endl;
+            cout << "Request ID: " << paya.id << endl;
+            cout << "Status: Pending" << endl;
             continue;
         }
         else if (cmd == "list_paya_requests"){
