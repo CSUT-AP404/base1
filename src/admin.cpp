@@ -1312,12 +1312,19 @@ class Core{
             string is_sure;
             cin >> is_sure;
             if(is_sure == "yes"){
+                remove("../data/Users.json");
+                remove("../data/Bank_Data.json");
+                Users.clear();
                 Branches.clear();
                 FAccounts.clear();
                 BAccounts.clear();
+                paya_requests.clear();
                 Trans.clear();
                 Account_Cnt = 0;
                 Trans_Cnt = 1001;
+                Request_Cnt = 0;
+                transferFee = 0;
+                balanceInquiryFee = 0;
                 write();
                 write_setting();
                 cout << "All data cleared." << '\n';
@@ -1344,7 +1351,11 @@ class Core{
         json j;
         inFile >> j;
         inFile.close();
-
+        Branches.clear();
+        FAccounts.clear();
+        BAccounts.clear();
+        paya_requests.clear();
+        Trans.clear();
         Account_Cnt = j["Account_Cnt"];
         Trans_Cnt   = j["Trans_Cnt"];
         Request_Cnt = j["Request_Cnt"];
