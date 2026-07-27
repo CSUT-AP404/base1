@@ -7,7 +7,6 @@
 
 ## Project Structure
 ```
-├── main.cpp        # Entry point
 ├── src/            # Source files (.cpp)
 ├── include/        # Header files (.h)
 ├── data/           # JSON data files (git-ignored at runtime)
@@ -47,13 +46,20 @@ g++ -std=c++17 -Wall -c src/bank.cpp -o src/bank.o
 g++ -std=c++17 -Wall -o bank_system main.o src/bank.o
 ```
 
-### Step 4 — Run
+### Step 4 — Run admin or user
 ```bash
-./bank_system
+./admin
 ```
 On Windows:
 ```cmd
-bank_system.exe
+admin.exe
+```
+```bash
+./user
+```
+On Windows:
+```cmd
+user.exe
 ```
 
 ### Step 5 — Clean compiled files
@@ -63,9 +69,13 @@ make clean
 ```
 This deletes all `.o` files and the executable. Then just run `make` again.
 
-### Compile and run in one command
+### Compile and run admin in one command
 ```bash
-make run
+make run-admin
+```
+### Compile and run user in one command
+```bash
+make run-user
 ```
 
 ---
@@ -75,7 +85,8 @@ make run
 | Command | What it does |
 |---|---|
 | `make` | Compiles the project |
-| `make run` | Compiles and runs immediately |
+| `make run-admin` | Compiles and runs admin immediately |
+| `make run-user` | Compiles and runs user immediately |
 | `make clean` | Deletes compiled files |
 
 ---
