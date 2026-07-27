@@ -1312,8 +1312,8 @@ class Core{
             string is_sure;
             cin >> is_sure;
             if(is_sure == "yes"){
-                remove("../data/Users.json");
-                remove("../data/Bank_Data.json");
+                remove("data/Users.json");
+                remove("data/Bank_Data.json");
                 Users.clear();
                 Branches.clear();
                 FAccounts.clear();
@@ -1344,7 +1344,7 @@ class Core{
         }
     /*--------------------------------------------------*/
     void read(){
-        ifstream inFile("../data/BankـData.json");
+        ifstream inFile("data/BankـData.json");
         if(!inFile.is_open()){
             return;
         }
@@ -1548,13 +1548,13 @@ class Core{
         j["Trans_Cnt"]   = Trans_Cnt;
         j["Request_Cnt"] = Request_Cnt;
 
-        ofstream outFile("../data/BankـData.json");
+        ofstream outFile("data/BankـData.json");
         outFile << j.dump(4);
         outFile.close();
     }
     /*--------------------------------------------------*/
     void read_setting() {
-        ifstream inFile("../data/setting.json");
+        ifstream inFile("data/setting.json");
         if(!inFile.is_open()){
             return;
         }
@@ -1570,13 +1570,13 @@ class Core{
         json j;
         j["transfer_fee"] = transferFee;
         j["balance_inquiry_fee"] = balanceInquiryFee;
-        ofstream inFile("../data/setting.json");
+        ofstream inFile("data/setting.json");
         inFile << j.dump(4);
         inFile.close();
     }
     /*--------------------------------------------------*/
     void read_users() {
-        ifstream inFile("../data/Users.json");
+        ifstream inFile("data/Users.json");
         if(!inFile.is_open()){
             return;
         }

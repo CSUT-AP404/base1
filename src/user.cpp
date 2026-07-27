@@ -291,7 +291,7 @@ class USER_Core{
         ~USER_Core(){}
 
     void read_users() {
-        ifstream inFile("../data/Users.json");
+        ifstream inFile("data/Users.json");
         if(!inFile.is_open()){
             return;
         }
@@ -349,7 +349,7 @@ class USER_Core{
             });
         }
         j["users"] = jUsers;
-        ofstream inFile("../data/Users.json");
+        ofstream inFile("data/Users.json");
         inFile << j.dump(4);
         inFile.close();
     }
@@ -387,7 +387,7 @@ string runAdmin(const vector<string>& inputs){
         close(outpipe[0]);
         close(inpipe[0]);
         close(outpipe[1]);
-        execl("./admin", "admin", NULL);
+        execl("./src/admin", "admin", NULL);
         _exit(1);
     }
     close(inpipe[0]);
@@ -440,7 +440,7 @@ int main(){
     //i used time(nullptr) insted of 0 cause it'll make OTP different with the other
     srand(time(nullptr));
     //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
-    int compile_status = system("g++ admin.cpp -o admin");
+    int compile_status = system("g++ src/admin.cpp -o src/admin");
     if(compile_status != 0){
         cout << "Error: Core system has some bug" << endl;
         return 1;
