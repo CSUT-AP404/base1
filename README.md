@@ -41,24 +41,18 @@ make
 This reads the Makefile and compiles all `.cpp` files into an executable called `bank_system`.
 You will see output like:
 ```
-g++ -std=c++17 -Wall -c main.cpp -o main.o
-g++ -std=c++17 -Wall -c src/bank.cpp -o src/bank.o
-g++ -std=c++17 -Wall -o bank_system main.o src/bank.o
+g++ -std=c++17 -Wall -o src/user src/user.cpp
+g++ -std=c++17 -Wall -o src/admin src/admin.cpp
 ```
 
 ### Step 4 — Run admin or user
 ```bash
 ./admin
-```
-On Windows:
-```cmd
-admin.exe
-```
-```bash
 ./user
 ```
 On Windows:
 ```cmd
+admin.exe
 user.exe
 ```
 
