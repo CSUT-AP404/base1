@@ -450,6 +450,8 @@ int main(){
     USER_Core Ucore;
     string cmd;
     int User_idx = -1;
+    string OTP_Code = "Error: No OTP request yet";
+    ll OTP_Time = -1e9;
     while(cin >> cmd){
         payload.clear();
         if(cmd == "EOF"){
@@ -496,7 +498,6 @@ int main(){
             cout << runAdmin(payload) << endl;
         }
         /*----------------------------------------------------------*/
-        /*-----------------------construction zone-------------------------------*/
         else if(cmd == "request_account"){
             string branch_id;
             cin >> branch_id;
@@ -867,11 +868,18 @@ int main(){
                 cout << "Error: Account does not belong to user." << endl;
                 continue;
             }
+            long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+            if(OTP_start_time_in_MS - OTP_Time < 120000){
+                cout << "OTP: " << OTP_Code << '\n';
+                cout << "expires in " << 120 - ((OTP_start_time_in_MS - OTP_Time) / 1000ll) << "seconds\n";
+                continue;
+            }
+            OTP_Time = OTP_start_time_in_MS;
             int OTP = rand() * rand();
             OTP = abs(OTP);
             OTP %= 1000000;
+            OTP_Code = to_string(OTP);
             Ucore.SetOTP(User_idx, OTP);
-            long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
             Ucore.SetOTPTime(User_idx, OTP_start_time_in_MS);
             cout << "OTP: " << OTP << '\n';
             cout << "expires in 120 seconds\n";
