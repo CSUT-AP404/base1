@@ -755,7 +755,7 @@ class Core{
             }
         } 
         bool isBranch(ll Id){
-            return (Id >= 10001 && Id <= 10001 + (int)Branches.size());
+            return (Id >= 10001 && Id < 10001 + (int)Branches.size());
         }
         void Branch_Dashboard(ll branch_id){
             if(!isBranch(branch_id)){
@@ -1434,7 +1434,7 @@ class Core{
             paya_requests.push_back(paya);
         }
     }
-    void write(){
+    void write(){    
         json j ; 
         json jBranches = json::array();
         for(auto &B : Branches){
@@ -1616,7 +1616,6 @@ bool isAccNumber(string &name){
 int main(){
     //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     Core core;
-    core.read();
     string cmd;
     while(cin >> cmd){
         if(cmd=="EOF"){

@@ -114,29 +114,28 @@ bool compare(string pass, string input){
 class USER_Core{
     private : 
         vector<User> Users; 
-        bool isValid(string id){
-            if(id.length() < 8 || id.length() > 10){
-                return false;
-            }
-            for(char c : id){
-                if(!isdigit(c)){
-                    return false;
-                }
-            }
-            while(id.length() < 10){
-                id = "0" + id;
-            }
-            int sum = 0;
-            for (int i = 0; i < 9; i++) {
-                sum += (id[i] - '0') * (10 - i);
-            }
-            int remainder = sum % 11;
-            int controlDigit = id[9] - '0';
-            if(remainder < 2){
-                return (controlDigit == remainder);
-            } 
-            return (controlDigit == (11 - remainder));
+    bool isValid(string code) {
+        for (char c : code) {
+            if (!isdigit(c)) return false;
         }
+        if (code.length() < 8 || code.length() > 10) {
+            return false;
+        }
+        while (code.length() < 10) {
+            code = "0" + code;
+        }
+        int sum = 0;
+        for (int i = 0; i < 9; i++) {
+            sum += (code[i] - '0') * (10 - i);
+        }
+        int remainder = sum % 11;
+        int checkDigit = code[9] - '0';
+        if (remainder < 2) {
+            return checkDigit == remainder;
+        } else {
+            return checkDigit == 11 - remainder;
+        }
+    }
         string getLevel(int score) {
             if(score <= 4) 
                 return "Bronze";
@@ -510,7 +509,7 @@ int main(){
             result = runAdmin(payload);
             auto Res = Translate(result);
             payload.clear();
-            if(Res[0] == "No"){
+            if(Res[0] != "Yes"){
                 cout << "Error: Branch not found." << endl;
                 continue;
             }
