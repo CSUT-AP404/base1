@@ -139,7 +139,7 @@ XXXX-XXXX-XXXX-XXXX
 - If no data files exist, system starts with empty state
 - Never commit your data/ JSON files (already in .gitignore)
 - Never push your passwords or any sensitive data
-
+```
 ## Phase Three
 
 Phase Three extends the banking system by replacing direct account creation with a branch-based request workflow and introducing more advanced electronic banking features. This phase preserves the capabilities of the previous phases while changing the account opening process from an immediate action into a multi-step branch approval flow.
