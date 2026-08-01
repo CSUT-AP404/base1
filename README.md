@@ -95,6 +95,44 @@ make run-user
 - All data persisted in JSON files under data/
 
 ---
+## Phase Two
+
+In Phase Two, the banking system was extended while preserving the functionality and commands implemented in Phase One.
+
+The main goal of this phase was to add a separate interface for ordinary users in addition to the administrative interface.
+
+### New User Application
+
+A new `user.cpp` application was added for ordinary users. Users can:
+
+- Sign up using their national code and password.
+- Log in and log out of the system.
+- Open one or more bank accounts.
+- View their own accounts and balances.
+- Deposit money into their accounts.
+- Withdraw money from their accounts.
+- Transfer money between accounts.
+- Delete their own bank accounts.
+- Delete their user account.
+
+The user application restricts access to accounts owned by the currently logged-in user. A user cannot view or operate on another user's accounts.
+
+### Authentication and Security
+
+Separate authentication mechanisms are used for users and bank accounts:
+
+- Each user has a national code and a password.
+- Each bank account has its own account password.
+- Passwords are stored as hashes instead of plain text.
+- Login and account operations validate the corresponding password before performing sensitive actions.
+- Unauthenticated users cannot perform account operations.
+
+### Account Management
+
+Users can create multiple accounts. Every account receives a unique 16-digit account number displayed in the following format:
+```text
+XXXX-XXXX-XXXX-XXXX
+
 
 ## Notes
 - Data files are created automatically on first run
