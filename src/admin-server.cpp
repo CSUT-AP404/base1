@@ -68,24 +68,29 @@ string runAdmin(const vector<string>& inputs){
     waitpid(pid, nullptr, 0);
     return result;
 }
-vector<string> Translate(const string &result){
+vector<string> Translate(const string &result, bool Space = 0){
     vector<string> Res;
     Res.push_back("");
     for(auto c : result){
         if(c > 32){
             Res[Res.size() - 1] += c;
         }
+        else if(c == 32 && Space){
+            Res[Res.size() - 1] += c;
+        }
         else if(Res.back() != ""){
             Res.push_back("");
         }
+    }
+    while(Res.back() == ""){
+        Res.pop_back();
     }
     return Res;
 }
 bool Find(string &result, string Str){
     return (result.find(Str) != string::npos);
 }
-int Status(const vector<string> payload, string result){
-    vector<string> Res = Translate(result);
+int Status(string result){
     if(!Find(result, "Error")){
         return 200;
     }
@@ -115,6 +120,155 @@ int Status(const vector<string> payload, string result){
     else if(Find(result, "already")){
         return 409;
     }
+    return 400;
+}
+void Set_Response_Admin(httplib::Response& res, vector<string> payload){
+    if(payload.empty()){
+        res.status = 200;
+        return;
+    }
+    string result = runAdmin(payload);
+    res.status = Status(result);
+    vector<string> Res = Translate(result), Res2 = Translate(result, 1);
+    json response;
+    if(res.status == 200){
+        response["ok"] = true;
+        response["message"] = result;
+        json jData = json::array();
+        if(payload[0] == "create_branch"){
+            jData.push_back({"branch_id", Res[3]});
+        }
+        else if(payload[0] == "list_branches"){
+            json jBranches = json::array();
+            for(auto B : Res2){
+                vector<string> Tmp = Translate(B);
+                jBranches.push_back({{"branch_id", Tmp[0]}, {"branch_name", Tmp[2]}});
+            }
+            jData.push_back({"branches", jBranches});
+        }
+        else if(payload[0] == "branch_dashboard"){
+            jData.push_back({"branch_name", Res[1]});
+            jData.push_back({"active_account_cnt", Res[4]});
+            jData.push_back({"pending_request_cnt", Res[7]});
+            jData.push_back({"rejected_today_cnt", Res[10]});
+        }
+        else if(payload[0] == "list_requests"){
+            json jRequests = json::array();
+            for(auto R : Res2){
+                vector<string> Tmp = Translate(R);
+                jRequests.push_back({{"request_id", Tmp[0]}, {"request_owner", Tmp[3]}, {"branch_id", Tmp[6]}, 
+                {"request_time", Tmp[9]}, {"request_status", Tmp[10]}});
+            }
+            jData.push_back({"requests", jRequests});
+        }
+        else if(payload[0] == "approve_request"){
+            jData.push_back({"request_id", Res[1]});
+        }
+        else if(payload[0] == "reject_request"){
+            jData.push_back({"request_id", Res[1]});
+        }
+        else if(payload[0] == "create_account"){
+            jData.push_back({"account_id", Res[3]});
+        }
+        else if(payload[0] == "list_accounts"){
+            json jAccounts = json::array();
+            for(auto A : Res2){
+                vector<string> Tmp = Translate(A);
+                jAccounts.push_back({{"account_id", Tmp[0]}, {"branch_id", Tmp[3]}, {"active", Tmp[6]}, 
+                {"balance", Tmp[9]}});
+            }
+            jData.push_back({"accounts", jAccounts});
+        }
+        else if(payload[0] == "set_transfer_fee"){
+            jData.push_back({"transfer_fee", Res[4]});
+        }
+        else if(payload[0] == "set_balance_inquiry_fee"){
+            jData.push_back({"balance_inquiry_fee", Res[5]});
+        }
+        else if(payload[0] == "show_fees"){
+            jData.push_back({"transfer_fee", Res[2]});
+            jData.push_back({"balance_inquiry_fee", Res[6]});
+        }
+        else if(payload[0] == "deposit"){
+            jData.push_back({"transaction_id", Res[2]}); 
+            jData.push_back({"new_balance", Res[5]});
+        }
+        else if(payload[0] == "withdraw"){
+            jData.push_back({"transaction_id", Res[2]});
+            jData.push_back({"new_balance", Res[5]});
+        }
+        else if(payload[0] == "transfer"){
+            jData.push_back({"transaction_id", Res[2]});
+            jData.push_back({"new_balance", Res[5]});
+        }
+        else if(payload[0] == "show_ranking"){
+            json jRanking = json::array();
+            for(auto U : Res2){
+                vector<string> Tmp = Translate(U);
+                jRanking.push_back({{"rank", Tmp[0]}, {"codeMelli", Tmp[2]}, {"score", Tmp[4]}, {"level", Tmp[6]}});
+            }
+            jData.push_back({"ranking", jRanking});
+        }
+        else if(payload[0] == "get_balance"){
+            int sz = (int)Res.size();
+            if(sz == 6){
+                jData.push_back({"balance", Res[1]});
+                jData.push_back({"active", Res[3]}); 
+                jData.push_back({"branch_id", Res[5]});
+            }
+            else{
+                jData.push_back({"balance", Res[sz - 5]});
+                jData.push_back({"balance_inquiry_free", Res[sz - 7]});
+                jData.push_back({"active", Res[sz - 3]}); 
+                jData.push_back({"branch_id", Res[sz - 1]});
+            }
+        }
+        else if(payload[0] == "get_history"){
+            json jHistory = json::array();
+            for(auto T : Res2){
+                vector<string> Tmp = Translate(T);
+                jHistory.push_back({{"transaction_id", Tmp[0]}, {"transaction_time", Tmp[2]}, 
+                {"transaction_type", Tmp[4]}, {"transaction_amount", Tmp[6]}, {"new_balance", Tmp[9]}});
+            }
+            jData.push_back({"history", jHistory});
+        }
+        else if(payload[0] == "get_transaction"){
+            jData.push_back({"transaction_id", Res[1]});
+            jData.push_back({"transaction_time", Res[3]});
+            jData.push_back({"transaction_type", Res[5]});
+            jData.push_back({"transaction_origin", Res[7]});
+            jData.push_back({"transaction_destination", Res[9]});
+            jData.push_back({"transaction_amount", Res[11]});
+            jData.push_back({"new_balance", Res[14]});
+        }
+        else if(payload[0] == "clear_history"){
+            jData.push_back({"account_id", Res[3]});
+        }
+        else if(payload[0] == "reset_all"){
+            jData.push_back({"status", Res2.back()});
+        }
+        else if(payload[0] == "list_paya_requests"){
+            json jPaya = json::array();
+            for(int i = 0, sz = (int)Res.size(); i < sz; i += 13){
+                jPaya.push_back({{"source", Res[i + 2]}, {"destination_iban", Res[i + 5]}, {"amount", Res[i + 7]}, 
+                {"status", Res[9]}, {"paya_id", Res[12]}});
+            }
+            jData.push_back({"payas", jPaya});
+        }
+        else if(payload[0] == "approve_paya"){
+            jData.push_back({"paya_id", Res[4]});
+        }
+        response["data"] = jData;
+    }
+    else{
+        response["ok"] = false;
+        json jError = json::array();
+        for(auto E : Res2){
+            jError.push_back(E);
+        }
+        response["error"] = jError;
+    }
+    res.set_content(response.dump(), "application/json");
 }
 
 int main(){
@@ -123,15 +277,14 @@ int main(){
         cout << "Error: Admin source has some bug" << endl;
         return 1;
     }
-    
     httplib::Server server;                 //http://127.0.0.1:8080
     
     server.set_error_handler([](const httplib::Request& req, httplib::Response& res){
         if(res.status == 404){
-            res.set_content(
-                R"({"error":"API not found"})",
-                "application/json"
-            );
+            json response;
+            response["ok"] = false;
+            response["error"] = "API not found";
+            res.set_content(response.dump(), "application/json");
         }
     });
 

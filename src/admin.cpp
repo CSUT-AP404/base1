@@ -645,7 +645,10 @@ class Core{
         }
         void list_paya (){
             for (int i = 0; i < paya_requests.size(); ++ i){
-                cout << "Source Account " << paya_requests[i].from_account << '\n' << "Destination IBAN: " << paya_requests[i].destination_iban << '\n' << "Amount: " << paya_requests[i].amount << '\n' << "Status: " << getstatus(paya_requests[i].status) << '\n' << "Request ID: " << paya_requests[i].id << '\n';
+                cout << "Source Account " << paya_requests[i].from_account << '\n' << "Destination IBAN: " 
+                << paya_requests[i].destination_iban << '\n' << "Amount: " << paya_requests[i].amount << '\n' 
+                << "Status: " << getstatus(paya_requests[i].status) << '\n' << "Request ID: " << paya_requests[i].id 
+                << '\n';
             }
             return;
         }
@@ -791,7 +794,7 @@ class Core{
             else if(branch_Id != -1){
                 cout << idx << " | Branch: " << branch_Id << " | Status: " << 
                 Branches[branch_id].Requests[req_idx].GetStatus() << 
-                " | " << Branches[branch_id].Requests[req_idx].reason << '\n';
+                " | Reason: " << Branches[branch_id].Requests[req_idx].reason << '\n';
                 return;
             }
             cout << "Error: Couldn't find the request" << '\n';
@@ -809,7 +812,7 @@ class Core{
             for(auto &R : Branches[branch_id].Requests){
                 if(!R.status){
                     cout << R.id << " | User: " << R.owner << " | Branch: " << branch_Id << " | " << 
-                    R.Time << "PENDING\n";
+                    R.Time << " PENDING\n";
                 }
             }
         }
@@ -1974,7 +1977,7 @@ int main(){
             core.reset_all();
             continue ; 
         }
-        else if (cmd == "paya_transfer"){
+        else if (cmd == "paya_transfer"){                                           //User only
             double amount;
             string from_account, destination_iban, pass;
             cin >> from_account >> destination_iban >> amount >> pass;

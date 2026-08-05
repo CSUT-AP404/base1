@@ -864,7 +864,7 @@ int main(){
             long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
             if(OTP_start_time_in_MS - OTP_Time < 120000){
                 cout << "OTP: " << OTP_Code << '\n';
-                cout << "expires in " << 120 - ((OTP_start_time_in_MS - OTP_Time) / 1000ll) << "seconds\n";
+                cout << "expires in " << 120 - ((OTP_start_time_in_MS - OTP_Time) / 1000ll) << " seconds\n";
                 continue;
             }
             OTP_Time = OTP_start_time_in_MS;
