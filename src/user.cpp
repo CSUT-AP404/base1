@@ -358,7 +358,9 @@ class USER_Core{
 
 bool isbad(string Str){
     return (Str == "reset_all" || Str == "clear_history" || Str == "set_balance_inquiry_fee" || Str == "show_fees" || 
-    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF");
+    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF" || 
+    Str == "branch_dashboard" || Str == "list_requests" || Str == "approve_request" || Str == "reject_request" || 
+    Str == "show_ranking" || Str == "list_paya_requests" || Str == "reject_paya");
 }
 string runAdmin(const vector<string>& inputs){
     if(inputs.size() == 0){
