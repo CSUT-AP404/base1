@@ -644,13 +644,13 @@ class Core{
         }
         void list_paya (){
             for (int i = 0; i < paya_requests.size(); ++ i){
-                cout << "Source Account " << paya_requests[i].from_account << endl << "Destination IBAN: " << paya_requests[i].destination_iban << endl << "Amount: " << paya_requests[i].amount << endl << "Status: " << getstatus(paya_requests[i].status) << endl << "Request ID: " << paya_requests[i].id << endl;
+                cout << "Source Account " << paya_requests[i].from_account << '\n' << "Destination IBAN: " << paya_requests[i].destination_iban << '\n' << "Amount: " << paya_requests[i].amount << '\n' << "Status: " << getstatus(paya_requests[i].status) << '\n' << "Request ID: " << paya_requests[i].id << '\n';
             }
             return;
         }
         string get_id_from_iban (string id){
             for(int i = 0; i < FAccounts.size(); ++ i){
-                //cout << FAccounts[i].getIBAN() << " " << FAccounts[i].get_account_id() << endl;
+                //cout << FAccounts[i].getIBAN() << " " << FAccounts[i].get_account_id() << '\n';
                 if (FAccounts[i].getIBAN() == id){
                      return FAccounts[i].get_account_id();
                 }
@@ -661,13 +661,13 @@ class Core{
             for (int i = 0; i < paya_requests.size(); ++ i){
                 if (paya_requests[i].id == payaid){
                     if (paya_requests[i].status){
-                        cout << "Error: paya request is not pending." << endl;
+                        cout << "Error: paya request is not pending." << '\n';
                         return;
                     }
                     paya_requests[i].status = 1;
                     string id = get_id_from_iban(paya_requests[i].destination_iban);
                     if (id == "NULL"){
-                        cout << "Error: no account exists with this IBAN." << endl;
+                        cout << "Error: no account exists with this IBAN." << '\n';
                         paya_requests[i].status = 0;
                         return;
                     }
@@ -682,7 +682,7 @@ class Core{
             for (int i = 0; i < paya_requests.size(); ++ i){
                 if (paya_requests[i].id == payaid){
                     if (paya_requests[i].status){
-                        cout << "Error: paya request is not pending." << endl;
+                        cout << "Error: paya request is not pending." << '\n';
                         return;
                     }
                     paya_requests[i].status = 2;
@@ -976,7 +976,7 @@ class Core{
             }
         }
         void Deposit(string &Num, ld val){
-            ///cout << endl << Num << " --" << endl;
+            ///cout << '\n' << Num << " --" << '\n';
             Account_Id AI(Num);
             for(auto &A : BAccounts){
                 if(removeDashes(Num) == A.getID().strid()){
@@ -985,7 +985,7 @@ class Core{
                 }
             }
             for(auto &A : FAccounts){
-                ///cout << AI.strid() << " " << A.getID().strid() << endl;
+                ///cout << AI.strid() << " " << A.getID().strid() << '\n';
                 if(removeDashes(Num) == A.getID().strid()){
                     Transaction T("DEPOSIT", Trans_Cnt++, val, A.getCoin() + val, Num, Num);
                     cout << "Transaction ID: " << T.ID << '\n';
@@ -1276,7 +1276,6 @@ class Core{
             }
             if(idx != -1){
                 string pass;
-                cout << "Enter password:" << '\n';
                 cin >> pass;
                 if(compare(FAccounts[idx].HashPass, pass)){
                     FAccounts[idx].clear_history();
@@ -1295,7 +1294,6 @@ class Core{
                 }
                 if(idx == -1){ cout << "Error: Account not found." << '\n'; return; }
                 string pass;
-                cout << "Enter password:" << '\n';
                 cin >> pass;
                 if(compare(BAccounts[idx].HashPass, pass)){
                     BAccounts[idx].clear_history();
@@ -1308,7 +1306,7 @@ class Core{
             }
         }
         void reset_all (){
-            cout << "Are you sure? This deletes everything. (yes/no): " << '\n';
+            //cout << "Are you sure? This deletes everything. (yes/no): " << '\n';
             string is_sure;
             cin >> is_sure;
             if(is_sure == "yes"){
@@ -1706,7 +1704,6 @@ int main(){
             int request;
             cin >> request;
             string reason;
-            cout << "Enter rejection reason: " << '\n';
             cin >> reason;
             core.Reject_Request(request, reason);
             continue;
@@ -1723,7 +1720,6 @@ int main(){
         else if(cmd == "create_account"){
             int num; 
             cin >> num;
-            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             core.Create_Account(num,pass);
@@ -1732,7 +1728,6 @@ int main(){
         else if(cmd == "close_account"){
             string id; 
             cin >> id;
-            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             if(!isAccNumber(id)){
@@ -1745,7 +1740,6 @@ int main(){
         else if (cmd == "delete_account"){
             string id; 
             cin >> id;
-            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             if(!isAccNumber(id)){
@@ -1830,7 +1824,6 @@ int main(){
             string num; 
             double val;
             cin >> num >> val;
-            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             if(val <= 0){
@@ -1848,7 +1841,6 @@ int main(){
             string from, to; 
             double val;
             cin >> from >> to >> val;
-            cout << "Enter password:" << '\n';
             string pass;
             cin >> pass;
             if(val <= 0){
@@ -1985,7 +1977,7 @@ int main(){
             double amount;
             string from_account, destination_iban, pass;
             cin >> from_account >> destination_iban >> amount >> pass;
-            //cout << "get " << destination_iban << endl;
+            //cout << "get " << destination_iban << '\n';
             int iban_index = core.IBANIDX(destination_iban);
             Paya_Request paya;
             paya.from_account= from_account;
@@ -1997,9 +1989,9 @@ int main(){
             if (ret){
                 continue;
             }
-            cout << "Paya request registered" << endl;
-            cout << "Request ID: " << paya.id << endl;
-            cout << "Status: Pending" << endl;
+            cout << "Paya request registered" << '\n';
+            cout << "Request ID: " << paya.id << '\n';
+            cout << "Status: Pending" << '\n';
             continue;
         }
         else if (cmd == "list_paya_requests"){
