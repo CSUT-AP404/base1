@@ -37,6 +37,7 @@ struct Account_Id{
             n[i] = 0;
         }
     }
+
     Account_Id (int n1, int n2, int n3, int n4){
         this -> n[0] = n1;
         this -> n[1] = n2;
