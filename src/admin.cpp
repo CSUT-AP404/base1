@@ -1345,6 +1345,11 @@ class Core{
                 " | " << getLevel(Users[i].score) << '\n';
             }
         }
+
+        ~Core (){
+            write();
+            write_setting();
+        }
     /*--------------------------------------------------*/
     void read(){
         ifstream inFile("data/BankـData.json");
@@ -2022,6 +2027,5 @@ int main(){
         }
         cout << "Error: Unknown command" << '\n';
     }
-    core.write();
     return 0;
 }

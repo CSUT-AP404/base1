@@ -287,7 +287,9 @@ class USER_Core{
             cout << "Level: " << getLevel(Users[idx].score) << '\n';
         }
 
-        ~USER_Core(){}
+        ~USER_Core(){
+            write_users();
+        }
 
     void read_users() {
         ifstream inFile("data/Users.json");
@@ -647,7 +649,6 @@ int main(){
             cout << "History exported to " << filename << '\n';
 
         }
-
         /*----------------------------------------------------------*/
         else if(cmd == "my_accounts"){
             if(User_idx == -1){
@@ -1540,5 +1541,4 @@ int main(){
             cout << "Error: Unknown command" << '\n';
         }
     }
-    Ucore.write_users();
 }
