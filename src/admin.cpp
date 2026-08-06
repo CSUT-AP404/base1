@@ -546,14 +546,15 @@ struct Paya_Request {
 };
 /*----------------------------------------------------------------------*/
 struct User {
-    vector<int> Request_Ids;
-    vector<string> id;
-    vector <string> ibans;
+    vector <int> Request_Ids;
+    vector <string> id;
+    vector <string> ibans; // save
     string codeMelli;
     string Hashpass;
     int score = 0;
     string signup_time;
-
+    long long OTP_start_time_in_MS = 0;
+    int OTP;
     User(){}
     User(string codeMelli, string Hashpass){
         this->codeMelli = codeMelli ;
@@ -1591,6 +1592,11 @@ class Core{
                 u.Hashpass = userr["pass"];
                 u.score = userr.value("score", 0);
                 u.signup_time = userr.value("signup_time", GetTime());
+                u.OTP = userr["OTP"];
+                u.OTP_start_time_in_MS = userr["OTP_start_time_in_MS"];
+                for(auto &iban : userr["ibans"]){
+                    u.ibans.push_back(iban);
+                }
                 for(auto &acc : userr["accounts"]){
                     u.id.push_back(acc);
                 }

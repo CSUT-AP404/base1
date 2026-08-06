@@ -271,6 +271,173 @@ void Set_Response_Admin(httplib::Response& res, vector<string> payload){
     res.set_content(response.dump(), "application/json");
 }
 
+class DataCenter{
+    private:
+        vector<User> Users;
+        vector<Branch> Branches;
+        vector<Account> FAccounts;
+        vector<Account> BAccounts;
+        vector<Transaction> Trans;
+        vector<Paya_Request> paya_requests; // save
+        int Account_Cnt, Trans_Cnt, Request_Cnt, BankID;
+        ld transferFee, balanceInquiryFee;
+    public:
+        DataCenter (int BankID = 5022){
+            this -> BankID = BankID;
+            Account_Cnt = 0;
+            Trans_Cnt = 1001;
+            transferFee = 0.00;
+            Request_Cnt = 0;
+            balanceInquiryFee = 0.00 ;
+            read();
+            read_setting();
+            read_users();
+        }
+
+        ~DataCenter(){}
+
+    void read(){
+        ifstream inFile("data/BankـData.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        inFile.close();
+        Branches.clear();
+        FAccounts.clear();
+        BAccounts.clear();
+        paya_requests.clear();
+        Trans.clear();
+        Account_Cnt = j["Account_Cnt"];
+        Trans_Cnt   = j["Trans_Cnt"];
+        Request_Cnt = j["Request_Cnt"];
+
+        for(auto &item : j["Branches"]){
+            Branch B(item["name"], item["id"]);
+            if(item.contains("accounts")){
+                for(auto &acc : item["accounts"]){
+                    B.AIs.push_back(acc.get<string>());
+                }
+            }
+            if(item.contains("requests")){
+                for(auto &b : item["requests"]){
+                    Request R(b["owner"].get<string>(), b["id"].get<int>(), b["status"].get<int>(), b["Branch_Id"].get<int>());
+                    R.Time = b["time"].get<string>();
+                    if(b.contains("reason")){
+                        R.reason = b["reason"].get<string>();
+                    }
+                    B.Add_Request(R);
+                }
+            }
+            Branches.push_back(B);
+        }
+
+        for(auto &item : j["active_accounts"]){
+            Account A(
+                item["id"].get<string>(),
+                item["branch"].get<int>(),
+                item["hash_pass"].get<string>(),
+                (ld)item["coin"].get<double>(),
+                item["active"].get<bool>()
+            );
+            for(auto &t : item["history"]){
+                Transaction T;
+                T.Type = t["type"];
+                T.ID = t["id"];
+                T.Val = (ld)t["val"].get<double>();
+                T.BALANCE = (ld)t["balance"].get<double>();
+                T.Time = t["time"];
+                T.Origin = t["origin"];
+                T.Destination = t["destination"];
+                A.pushHistory(T);
+            }
+            FAccounts.push_back(A);
+        }
+
+        for(auto &item : j["closed_accounts"]){
+            Account A(
+                item["id"].get<string>(),
+                item["branch"].get<int>(),
+                item["hash_pass"].get<string>(),
+                (ld)item["coin"].get<double>(),
+                item["active"].get<bool>()
+            );
+            for(auto &t : item["history"]){
+                Transaction T;
+                T.Type = t["type"];
+                T.ID = t["id"];
+                T.Val = (ld)t["val"].get<double>();
+                T.BALANCE = (ld)t["balance"].get<double>();
+                T.Time = t["time"];
+                T.Origin = t["origin"];
+                T.Destination = t["destination"];
+                A.pushHistory(T);
+            }
+            BAccounts.push_back(A);
+        }
+
+        for(auto &t : j["transactions"]){
+            Transaction T;
+            T.Type = t["type"];
+            T.ID = t["id"];
+            T.Val = (ld)t["val"].get<double>();
+            T.BALANCE = (ld)t["balance"].get<double>();
+            T.Time = t["time"];
+            T.Origin = t["origin"];
+            T.Destination = t["destination"];
+            Trans.push_back(T);
+        }
+        for (auto &p : j["paya"]){
+            Paya_Request paya;
+            paya.id = p["id"];
+            paya.from_account = p["from_account"];
+            paya.destination_iban = p["destination_iban"];
+            paya.amount = p["amount"].get<double>();
+            paya.status = p["status"];
+            paya_requests.push_back(paya);
+        }
+    }
+    void read_setting() {
+        ifstream inFile("data/setting.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("transfer_fee"))
+            transferFee = j["transfer_fee"];
+        if(j.contains("balance_inquiry_fee")) 
+            balanceInquiryFee = j["balance_inquiry_fee"];
+        inFile.close();
+    }
+    void read_users() {
+        ifstream inFile("data/Users.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("users")){
+            for(auto &userr : j["users"]){
+                User u;
+                u.codeMelli = userr["codeMelli"];
+                u.Hashpass = userr["pass"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
+                for(auto &acc : userr["accounts"]){
+                    u.id.push_back(acc);
+                }
+                for(auto &req : userr["request_ids"]){
+                    u.Request_Ids.push_back(req);
+                }
+                Users.push_back(u);
+            }
+        }
+        inFile.close();
+    }
+};
+
 int main(){
     int compile_status = system("g++ src/admin.cpp -o src/admin");
     if(compile_status != 0){

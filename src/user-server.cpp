@@ -22,6 +22,83 @@ typedef long double ld;
 #define mp make_pair
 #define all(x) (x).begin(), (x).end()
 
+const int TIMEOUT_MINUTES = 15;
+
+string GetTime(){
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    string Time = to_string(1900 + ltm->tm_year) + '-';
+    // added +1 to month
+    string Month = to_string(ltm->tm_mon + 1); 
+    if((int)Month.size() == 1){
+        Time += '0';
+    }
+    Time += Month;
+    Time += '-';
+    string Day = to_string(ltm->tm_mday);
+    if((int)Day.size() == 1){
+        Time += '0';
+    }
+    Time += Day;
+    Time += ' ';
+    string Hour = to_string(ltm->tm_hour);
+    if((int)Hour.size() == 1){
+        Time += '0';
+    }
+    Time += Hour;
+    Time += ':';
+    string Min = to_string(ltm->tm_min);
+    if((int)Min.size() == 1){
+        Time += '0';
+    }
+    Time += Min;
+    Time += ':';
+    string Sec = to_string(ltm->tm_sec);
+    if((int)Sec.size() == 1){
+        Time += '0';
+    }
+    Time += Sec;
+    return Time; 
+};
+string removeDashes(string input) {
+    input.erase(remove(input.begin(), input.end(), '-'), input.end());
+    return input;
+}
+struct User {
+    vector <int> Request_Ids;
+    vector <string> id;
+    vector <string> ibans; // save
+    string codeMelli;
+    string Hashpass;
+    int score = 0;
+    string signup_time;
+    long long OTP_start_time_in_MS = 0;
+    int OTP;
+    User(){}
+    User(string codeMelli, string Hashpass){
+        this->codeMelli = codeMelli ;
+        this->Hashpass = Hashpass ;
+        this->score = 0;
+        this->signup_time = GetTime();
+    }
+
+    void erase(int idx){
+        id.erase(id.begin() + idx);
+    }
+
+    bool operator== (const User &U) const{
+        return (codeMelli == U.codeMelli);
+    }
+    bool operator< (const User &U) const{
+        if(score != U.score){
+            return score > U.score;
+        }
+        return signup_time < U.signup_time;
+    }
+
+    ~User(){}
+};
+
 string runUser(const vector<string>& inputs){
     if(inputs.size() == 0){
         return "";
@@ -122,20 +199,239 @@ int Status(string result){
     }
     return 400;
 }
-void Set_Response_USER(httplib::Response& res, vector<string> payload){
+
+bool compare(string pass, string input){
+    input = picosha2::hash256_hex_string(input);
+    if(pass==input)
+        return true ;
+    return false ; 
+}
+struct Session{
+    pair<string, string> user_pass;
+    chrono::steady_clock::time_point last_activity;
+
+    Session (pair<string, string> user_pass = mp("", ""), chrono::steady_clock::time_point last_activity = chrono::steady_clock::now()){
+        this -> user_pass = user_pass;
+        this -> last_activity = last_activity;
+    }
+
+    ~Session (){}
+};
+class Token_Manager{
+    private:
+        vector<User> Users;
+        map<string, Session> active_sessions;
+    
+        string generate_token(){
+            const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_int_distribution<> dis(0, chars.size() - 1);
+            string token;
+            for(int i = 0; i < 32; i++){
+                token += chars[dis(gen)];
+            }
+            return token;
+        }
+    public:
+        Token_Manager(){
+            read_users();
+        }
+
+        int UserIDX(string &codeMelli, string &pass){
+            for(int i = 0, sz = (int)Users.size(); i < sz; i++){
+                if(Users[i].codeMelli == codeMelli){
+                    if(!compare(Users[i].Hashpass, pass)){
+                        return -1;
+                    }
+                    return i;
+                }
+            }
+            return -1;
+        }
+        bool is_authorized(const httplib::Request& req, int User_idx){
+            if(!req.has_header("Authorization")){
+                return false;
+            }
+            string auth_header = req.get_header_value("Authorization");
+            if(auth_header.find("Bearer ") != 0){
+                return false;
+            }
+            string token = auth_header.substr(7);
+            auto it = active_sessions.find(token);
+            if(it == active_sessions.end()){
+                return false;
+            }
+            if(active_sessions[token].user_pass.first != Users[User_idx].codeMelli){
+                return false;
+            }
+            auto now = chrono::steady_clock::now();
+            auto elapsed = chrono::duration_cast<chrono::minutes>(now - it->second.last_activity).count();
+            if(elapsed > TIMEOUT_MINUTES){
+                active_sessions.erase(it);
+                return false;
+            }
+            it->second.last_activity = now;
+            return true;
+        }
+        string Login(string &codeMelli, string &pass){       //runs only if login is ok
+            int User_idx = UserIDX(codeMelli, pass);
+            string token = generate_token();
+            active_sessions[token] = Session (mp(codeMelli, pass));
+            return token;
+        }
+        void Logout(const httplib::Request& req, int id){
+            if(req.has_header("Authorization")){
+                string auth_header = req.get_header_value("Authorization");
+                if(auth_header.find("Bearer ") == 0){
+                    string token = auth_header.substr(7);
+                    active_sessions.erase(token);
+                }
+            }
+        }
+
+        void UPD(){
+            Users.clear();
+            read_users();
+        }
+
+        ~Token_Manager(){}
+    
+    void read_users() {
+        ifstream inFile("data/Users.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("users")){
+            for(auto &userr : j["users"]){
+                User u;
+                u.codeMelli = userr["codeMelli"];
+                u.Hashpass = userr["pass"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
+                u.OTP = userr["OTP"];
+                u.OTP_start_time_in_MS = userr["OTP_start_time_in_MS"];
+                for(auto &iban : userr["ibans"]){
+                    u.ibans.push_back(iban);
+                }
+                for(auto &acc : userr["accounts"]){
+                    u.id.push_back(acc);
+                }
+                for(auto &req : userr["request_ids"]){
+                    u.Request_Ids.push_back(req);
+                }
+                Users.push_back(u);
+            }
+        }
+        inFile.close();
+    }
+};
+class DataBank{
+    private:
+        vector<User> Users;
+    public:
+        vector<string> Account_Ids;
+        vector<int> Request_Ids;
+        
+        DataBank (){
+            read_users();
+            for(auto U : Users){
+                for(auto R_id : U.Request_Ids){
+                    Request_Ids.push_back(R_id);
+                }
+                for(auto A_id : U.id){
+                    Account_Ids.push_back(A_id);
+                }
+            }
+            Users.clear();
+        }
+
+        void UPD(){
+            Account_Ids.clear();
+            Request_Ids.clear();
+            read_users();
+            for(auto U : Users){
+                for(auto R_id : U.Request_Ids){
+                    Request_Ids.push_back(R_id);
+                }
+                for(auto A_id : U.id){
+                    Account_Ids.push_back(A_id);
+                }
+            }
+            Users.clear();
+        }
+
+        ~DataBank (){}
+
+    void read_users() {
+        ifstream inFile("data/Users.json");
+        if(!inFile.is_open()){
+            return;
+        }
+        json j;
+        inFile >> j;
+        if(j.contains("users")){
+            for(auto &userr : j["users"]){
+                User u;
+                u.codeMelli = userr["codeMelli"];
+                u.Hashpass = userr["pass"];
+                u.score = userr.value("score", 0);
+                u.signup_time = userr.value("signup_time", GetTime());
+                u.OTP = userr["OTP"];
+                u.OTP_start_time_in_MS = userr["OTP_start_time_in_MS"];
+                for(auto &iban : userr["ibans"]){
+                    u.ibans.push_back(iban);
+                }
+                for(auto &acc : userr["accounts"]){
+                    u.id.push_back(acc);
+                }
+                for(auto &req : userr["request_ids"]){
+                    u.Request_Ids.push_back(req);
+                }
+                Users.push_back(u);
+            }
+        }
+        inFile.close();
+    }
+};
+void Set_Response_USER(const httplib::Request& req, httplib::Response& res, Token_Manager &TM, int &User_idx, DataBank &D){
+    vector<string> payload = Translate(req.body);
+    json response;
     if(payload.empty()){
         res.status = 200;
         return;
     }
+    if(User_idx != -1 && TM.is_authorized(req, User_idx) == 0){
+        res.status = 401;
+        response["ok"] = false;
+        response["error"] = "Error: Wrong token.";
+        res.set_content(response.dump(), "application/json");
+        return;
+    }
+    payload[0] += "_server";
+    payload.insert(payload.begin() + 1, to_string(User_idx));
     string result = runUser(payload);
     res.status = Status(result);
     vector<string> Res = Translate(result), Res2 = Translate(result, 1);
-    json response;
     if(res.status == 200){
         response["ok"] = true;
         response["message"] = result;
         json jData = json::array();
-        if(payload[0] == "list_branches"){
+        if(payload[0] == "login_server"){
+            User_idx = TM.UserIDX(payload[2], payload[3]);
+            jData.push_back({"token", TM.Login(payload[2], payload[3])});
+        }
+        else if(payload[0] == "logout_server"){
+            TM.Logout(req, User_idx);
+            User_idx = -1;
+        }
+        else if(payload[0] == "delete_my_user_server"){
+            TM.Logout(req, User_idx);
+            User_idx = -1;
+        }
+        else if(payload[0] == "list_branches_server"){
             json jBranches = json::array();
             for(auto B : Res2){
                 vector<string> Tmp = Translate(B);
@@ -143,10 +439,10 @@ void Set_Response_USER(httplib::Response& res, vector<string> payload){
             }
             jData.push_back({"branches", jBranches});
         }
-        else if(payload[0] == "request_account"){
+        else if(payload[0] == "request_account_server"){
             jData.push_back({"request_id", Res[3]});
         }
-        else if(payload[0] == "my_requests"){
+        else if(payload[0] == "my_requests_server"){
             json jRequests = json::array();
             for(auto R : Res2){
                 vector<string> Tmp = Translate(R);
@@ -162,32 +458,32 @@ void Set_Response_USER(httplib::Response& res, vector<string> payload){
             }
             jData.push_back({"requests", jRequests});
         }
-        else if(payload[0] == "cancel_request"){
-            jData.push_back({"request_id", payload[1]});
+        else if(payload[0] == "cancel_request_server"){
+            jData.push_back({"request_id", Res[1]});
         }
-        else if(payload[0] == "activate_account"){
+        else if(payload[0] == "activate_account_server"){
             jData.push_back({"account_id", Res[3]});
         }
-        else if(payload[0] == "my_accounts"){
+        else if(payload[0] == "my_accounts_server"){
             json jAccounts = json::array();
             for(int i = 0, sz = (int)Res.size(); i < sz; i += 3){
                 jAccounts.push_back({{"account_id", Res[i]}, {"balance", Res[i + 2]}});
             }
             jData.push_back({"accounts", jAccounts});
         }
-        else if(payload[0] == "deposit_to"){
+        else if(payload[0] == "deposit_to_server"){
             jData.push_back({"transaction_id", Res[2]}); 
             jData.push_back({"new_balance", Res[5]});
         }
-        else if(payload[0] == "withdraw_from"){
+        else if(payload[0] == "withdraw_from_server"){
             jData.push_back({"transaction_id", Res[2]});
             jData.push_back({"new_balance", Res[5]});
         }
-        else if(payload[0] == "send_money"){
+        else if(payload[0] == "send_money_server"){
             jData.push_back({"transaction_id", Res[2]});
             jData.push_back({"new_balance", Res[5]});
         }
-        else if(payload[0] == "balance_inquiry"){
+        else if(payload[0] == "balance_inquiry_server"){
             int sz = (int)Res.size();
             if(sz == 6){
                 jData.push_back({"balance", Res[1]});
@@ -201,24 +497,24 @@ void Set_Response_USER(httplib::Response& res, vector<string> payload){
                 jData.push_back({"branch_id", Res[sz - 1]});
             }
         }
-        else if(payload[0] == "my_rank"){
+        else if(payload[0] == "my_rank_server"){
             jData.push_back({"rank", Res[2]});
             jData.push_back({"score", Res[4]});
             jData.push_back({"level", Res[6]});
         }
-        else if(payload[0] == "request_OTP"){
+        else if(payload[0] == "request_OTP_server"){
             jData.push_back({"OTP", Res[1]});
             jData.push_back({"OTP_duration", Res[4]});
         }
-        else if(payload[0] == "online_payment"){
+        else if(payload[0] == "online_payment_server"){
             jData.push_back({"transaction_id", Res[2]});
             jData.push_back({"new_balance", Res[5]});
             jData.push_back({"new_balance_destination", Res[11]});
         }
-        else if(payload[0] == "show_iban"){
+        else if(payload[0] == "show_iban_server"){
             jData.push_back({"iban", Res[1]});
         }
-        else if(payload[0] == "paya_transfer"){
+        else if(payload[0] == "paya_transfer_server"){
             jData.push_back({"paya_id", Res[5]});
             jData.push_back({"status", Res[7]});
         }
@@ -233,6 +529,8 @@ void Set_Response_USER(httplib::Response& res, vector<string> payload){
         response["error"] = jError;
     }
     res.set_content(response.dump(), "application/json");
+    TM.UPD();
+    D.UPD();
 }
 
 int main(){
@@ -242,6 +540,9 @@ int main(){
         return 1;
     }
     httplib::Server server;                 //http://127.0.0.1:8080
+    Token_Manager TM;
+    DataBank D;
+    int User_idx = -1;
     
     server.set_error_handler([](const httplib::Request& req, httplib::Response& res){
         if(res.status == 404){
@@ -251,10 +552,67 @@ int main(){
             res.set_content(response.dump(), "application/json");
         }
     });
-    server.Post("/auth/signup", [](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(res, Translate(req.body));
+    server.Post("/auth/signup", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
     });
-
+    server.Post("/auth/login", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Delete("/auth/session", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post("/accounts/requests", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Get("/accounts/requests", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Delete(R"(/accounts/requests/(\d+))", [&TM, &User_idx, &D]
+    (const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Patch(R"(/accounts/([^/]+)/activation)", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Delete(R"(/accounts/([^/]+))", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post(R"(/accounts/([^/]+)/deposits)", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post(R"(/accounts/([^/]+)/withdrawals)", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post(R"(/accounts/([^/]+)/balance-inquiries)", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Get(R"(/accounts/([^/]+)/iban)", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Get(R"(/accounts/([^/]+)/statement)", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Get("/accounts", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post("/transfers/card-to-card", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post("/auth/otp", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post("/payments/online", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Post("/transfers/paya", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Delete("/users/me", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
+    server.Get("/users/me/rank", [&TM, &User_idx, &D](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM, User_idx, D);
+    });
 
     server.listen("127.0.0.1", 8080);
 }
