@@ -85,7 +85,9 @@ make run-user
 
 ---
 
-## Features (Phase 1)
+## Features — Phase One
+In this phase of the project, the main core of the banking system has been implemented. This phase focuses on the fundamental aspects of the system!
+
 - Branch management: create and list branches
 - Account management: create, close, delete, list accounts
 - Transactions: deposit, withdraw, transfer
