@@ -217,7 +217,7 @@ def main():
         print("\n--- User Section ---")
         print("1. Signup")
         print("2. Login")
-        print("0. Back")
+        print("0. Exit")
         Req = input("Enter : ").strip()
         if Req == "1":
             data = {
