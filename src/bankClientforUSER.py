@@ -113,3 +113,139 @@ class UserClient:
     def get_account_statement(self, account_id: int) -> dict:
         return self._request("GET", f"/accounts/{account_id}/statement")
 
+# ============================================
+
+def UserMenu(client: UserClient):
+    while True:
+        print("="*15+"User Menu"+"="*21)
+        print("1. Get Branches")
+        print("2. Create Account Request")
+        print("3. View My Account Requests")
+        print("4. Deposit")
+        print("5. Withdraw")
+        print("6. Card to Card Transfer")
+        print("7. Paya Transfer")
+        print("8. View My Accounts")
+        print("9. Get Account Balance")
+        print("10.Get Account Statement")
+        print("11.Logout")
+        print("0. Back")
+        print("="*50)
+
+        req = input("Enter your request: ").strip()
+
+        if req == "1":
+            print(client.get_branches())
+
+        elif req == "2":
+            try:
+                branch_id = int(input("Branch ID: "))
+                print(client.create_account_request(branch_id))
+            except ValueError:
+                print("Please enter a valid number.")
+
+        elif req == "3":
+            print(client.get_account_requests())
+
+        elif req == "4":
+            try:
+                acc_id = int(input("Account ID: "))
+                amount = float(input("Amount: "))
+                password = input("Password: ")
+                print(client.deposit(acc_id, amount, password))
+            except ValueError:
+                print("Invalid input.")
+
+        elif req == "5":
+            try:
+                acc_id = int(input("Account ID: "))
+                amount = float(input("Amount: "))
+                password = input("Password: ")
+                print(client.withdraw(acc_id, amount, password))
+            except ValueError:
+                print("Invalid input.")
+
+        elif req == "6":
+            from_card = input("From Card: ")
+            to_card = input("To Card: ")
+            amount = float(input("Amount: "))
+            password = input("Password: ")
+            print(client.Transfer(from_card, to_card, amount, password))
+
+        elif req == "7":
+            try:
+                from_acc = int(input("From Account ID: "))
+                to_iban = input("To IBAN: ")
+                amount = float(input("Amount: "))
+                password = input("Password: ")
+                print(client.paya_transfer(from_acc, to_iban, amount, password))
+            except ValueError:
+                print("Invalid input.")
+
+        elif req == "8":
+            print(client.get_my_accounts())
+
+        elif req == "9":
+            try:
+                acc_id = int(input("Account ID: "))
+                password = input("Password: ")
+                print(client.get_balance(acc_id, password))
+            except ValueError:
+                print("Invalid input.")
+
+        elif req == "10":
+            try:
+                acc_id = int(input("Account ID: "))
+                print(client.get_account_statement(acc_id))
+            except ValueError:
+                print("Invalid input.")
+
+        elif req == "11":
+            print(client.logout())
+            print("Logged out...")
+            break
+        elif req == "0":
+            break
+        else:
+            print("Invalid!!")
+
+#=========================================================
+
+def main():
+    User_Client = UserClient()
+    while True:
+        print("\n--- User Section ---")
+        print("1. Signup")
+        print("2. Login")
+        print("0. Back")
+        Req = input("Enter : ").strip()
+        if Req == "1":
+            data = {
+                "national_id": input("National ID: "),
+                "name": input("Name: "),
+                "family": input("Family: "),
+                "birth_date": input("Birth Date (YYYY-MM-DD): "),
+                "username": input("Username: "),
+                "password": input("Password: ")
+            }
+            print(User_Client.signup(**data))
+        elif Req == "2":
+            username = input("Username: ")
+            password = input("Password: ")
+            result = User_Client.login(username, password)
+            if result.get("ok"):
+                print("Login successful. Entering User Menu...") 
+                #after login
+                UserMenu(User_Client)
+            else:
+                print("Login failed. \n Your Username or Password might be wrong, please try again !!")
+
+        elif Req == "0":
+            print("Exiting...")
+
+        else:
+            print("Invalid!!")
+
+
+if __name__ == "__main__":
+    main()
