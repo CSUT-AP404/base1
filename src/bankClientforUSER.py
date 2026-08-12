@@ -242,6 +242,7 @@ def main():
 
         elif Req == "0":
             print("Exiting...")
+            break  
 
         else:
             print("Invalid!!")
