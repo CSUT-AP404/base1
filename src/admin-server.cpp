@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
-//#include <unistd.h>
-#include "../include/unistd.h"
-//#include <sys/wait.h>
-#include "../include/sys/wait.h"
+#include <unistd.h>
+//#include "../include/unistd.h"
+#include <sys/wait.h>
+//#include "../include/src/sys/sys/wait.h"
 #include <sstream>
 #include <stdexcept>
 #include "../include/picosha2.h"
