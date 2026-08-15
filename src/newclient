@@ -56,13 +56,21 @@ class BaseClient:
         data = response.get("data")
 
         if isinstance(data, list) and data:
-            if isinstance(data[0], dict):
-                return data[0].get("token")
+            first = data[0]
+
+            if isinstance(first, dict):
+                return first.get("token")
+
+            if isinstance(first, (list, tuple)) and len(first) == 2:
+                if first[0] == "token":
+                    return first[1]
 
         if isinstance(data, dict):
             return data.get("token")
 
         return None
+
+
 
 
 class AdminClient(BaseClient):

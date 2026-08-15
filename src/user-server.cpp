@@ -159,7 +159,7 @@ vector<string> Translate(const string &result, bool Space = 0){
             Res.push_back("");
         }
     }
-    while(Res.back() == ""){
+    while(!Res.empty() && Res.back() == ""){
         Res.pop_back();
     }
     return Res;
@@ -184,7 +184,7 @@ int Status(string result){
         return 401;
     }
     else if(Find(result, "Wrong") || Find(result, "Unauthorized request") || 
-    Find(result, "does not belong") || Find(result, "") || Find(result, "is inactive")){
+    Find(result, "does not belong") || Find(result, "is inactive")){
         return 403;
     }
     else if(Find(result, "not found") || Find(result, "no account exists with this IBAN") || 
