@@ -63,17 +63,23 @@ You will see output like:
 ```
 g++ -std=c++17 -Wall -o src/user src/user.cpp
 g++ -std=c++17 -Wall -o src/admin src/admin.cpp
+g++ -std=c++17 -Wall -o src/user-server src/user-server.cpp
+g++ -std=c++17 -Wall -o src/admin-server src/admin-server.cpp
 ```
 
-### Step 4 — Run admin or user
+### Step 4 — Run admin or user or servers
 ```bash
 ./admin
 ./user
+./admin-server
+./user-server
 ```
 On Windows:
 ```cmd
 admin.exe
 user.exe
+admin-server.exe
+user-server.exe
 ```
 
 ### Step 5 — Clean compiled files
@@ -91,6 +97,14 @@ make run-admin
 ```bash
 make run-user
 ```
+### Compile and run server for admins in one command
+```bash
+make run-server-admin
+```
+### Compile and run server for users in one command
+```bash
+make run-server-user
+```
 
 ---
 
@@ -101,6 +115,8 @@ make run-user
 | `make` | Compiles the project |
 | `make run-admin` | Compiles and runs admin immediately |
 | `make run-user` | Compiles and runs user immediately |
+| `make run-server-admin` | Compiles and runs server (for admins) immediately |
+| `make run-server-user` | Compiles and runs server (for users) immediately |
 | `make clean` | Deletes compiled files |
 
 ---
@@ -548,7 +564,3 @@ JSON Data
 This architecture makes it possible to interact with the banking system remotely
 through HTTP while keeping the existing banking functionality and persistent data
 management.
-
-## Phase Four
-
-- **Admin Password:** `wopwop`
