@@ -56,6 +56,20 @@ admin.exe
 user.exe
 ```
 
+
+## Run Commands
+
+Depending on your shell/environment, you can compile and run each program in one line using either `&&` or `;`.
+
+### Using `&&`
+This runs the executable only if compilation succeeds.
+```bash
+g++ src/user-server.cpp -o src/user-server && ./src/user-server
+g++ src/admin-server.cpp -o src/admin-server && ./src/admin-server
+g++ src/admin.cpp -o src/admin && ./src/admin
+g++ src/user.cpp -o src/user && ./src/user
+
+
 ### Step 5 — Clean compiled files
 If you want to recompile everything from scratch:
 ```bash
