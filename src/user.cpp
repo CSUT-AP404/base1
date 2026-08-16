@@ -60,9 +60,8 @@ string GetTime(){
     Time += Sec;
     return Time; 
 };
-
-std::string removeDashes(std::string input) {
-    input.erase(std::remove(input.begin(), input.end(), '-'), input.end());
+string removeDashes(string input) {
+    input.erase(remove(input.begin(), input.end(), '-'), input.end());
     return input;
 }
 
@@ -283,12 +282,14 @@ class USER_Core{
                     break;
                 }
             }
-            cout << "Rank : " << rank << endl;
-            cout << "Score: " << Users[idx].score << endl;
-            cout << "Level: " << getLevel(Users[idx].score) << endl;
+            cout << "Rank : " << rank << '\n';
+            cout << "Score: " << Users[idx].score << '\n';
+            cout << "Level: " << getLevel(Users[idx].score) << '\n';
         }
 
-        ~USER_Core(){}
+        ~USER_Core(){
+            write_users();
+        }
 
     void read_users() {
         ifstream inFile("data/Users.json");
@@ -358,7 +359,9 @@ class USER_Core{
 
 bool isbad(string Str){
     return (Str == "reset_all" || Str == "clear_history" || Str == "set_balance_inquiry_fee" || Str == "show_fees" || 
-    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF");
+    Str == "set_transfer_fee" || Str == "list_accounts" || Str == "create_branch" || Str == "EOF" || 
+    Str == "branch_dashboard" || Str == "list_requests" || Str == "approve_request" || Str == "reject_request" || 
+    Str == "show_ranking" || Str == "list_paya_requests" || Str == "reject_paya");
 }
 string runAdmin(const vector<string>& inputs){
     if(inputs.size() == 0){
@@ -442,7 +445,7 @@ int main(){
     //ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     int compile_status = system("g++ src/admin.cpp -o src/admin");
     if(compile_status != 0){
-        cout << "Error: Core system has some bug" << endl;
+        cout << "Error: Core system has some bug" << '\n';
         return 1;
     }
     vector<string> payload;
@@ -461,48 +464,44 @@ int main(){
         }
         else if(cmd == "signup"){
             string codeMelli, pass;
-            cout << "Enter national code: " << endl;
             cin >> codeMelli;
-            cout << "Enter user password: " << endl;
             cin >> pass;
             if(User_idx != -1){
-                cout << "Error: User already logged in." << endl;
+                cout << "Error: User already logged in." << '\n';
                 continue;
             }
             Ucore.SignUP(codeMelli, pass);
-            cout << endl;
+            cout << '\n';
         }
         else if(cmd == "login"){
             string codeMelli, pass;
-            cout << "Enter national code: " << endl;
             cin >> codeMelli;
-            cout << "Enter user password: " << endl;
             cin >> pass;
             if(User_idx != -1){
-                cout << "Error: User already logged in." << endl;
+                cout << "Error: User already logged in." << '\n';
                 continue;
             }
             User_idx = Ucore.UserIDX(codeMelli, pass);
-            cout << endl;
+            cout << '\n';
         }
         else if(cmd == "logout"){
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             User_idx = -1;
-            cout << "Logged out" << endl;
+            cout << "Logged out" << '\n';
         }
         else if(cmd == "list_branches"){
             payload.push_back("list_branches");
-            cout << runAdmin(payload) << endl;
+            cout << runAdmin(payload) << '\n';
         }
         /*----------------------------------------------------------*/
         else if(cmd == "request_account"){
             string branch_id;
             cin >> branch_id;
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             payload.push_back("is_branch_op");
@@ -511,7 +510,7 @@ int main(){
             auto Res = Translate(result);
             payload.clear();
             if(Res[0] != "Yes"){
-                cout << "Error: Branch not found." << endl;
+                cout << "Error: Branch not found." << '\n';
                 continue;
             }
             payload.push_back("add_account_request_op");
@@ -519,7 +518,7 @@ int main(){
             payload.push_back(branch_id);
             result = runAdmin(payload);
             Res = Translate(result);
-            cout << result << endl;
+            cout << result << '\n';
             payload.clear();
             if(!isError(result)){
                 Ucore.Add_Request(User_idx, stoi(Res[3]));
@@ -527,14 +526,14 @@ int main(){
         }
         else if(cmd == "my_requests"){
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             auto RequestList = Ucore.UserRequestList(User_idx);
             for(auto id : RequestList){
                 payload.push_back("print_request_op");
                 payload.push_back(to_string(id));
-                cout << runAdmin(payload) << endl;
+                cout << runAdmin(payload) << '\n';
                 payload.clear();
             }
         }
@@ -542,22 +541,21 @@ int main(){
             ll req_Id;
             cin >> req_Id;
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             payload.push_back("cancel_request_op");
             payload.push_back(Ucore.UserCode(User_idx));
             payload.push_back(to_string(req_Id));
-            cout << runAdmin(payload) << endl;
+            cout << runAdmin(payload) << '\n';
         }
         else if(cmd == "activate_account"){
             string pass;
             ll req_Id;
             cin >> req_Id;
-            cout << "Enter account password: " << endl;
             cin >> pass;
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             payload.push_back("is_request_usable_op");
@@ -566,7 +564,7 @@ int main(){
             result = runAdmin(payload);
             payload.clear();
             if(isError(result)){
-                cout << result << endl;
+                cout << result << '\n';
                 continue;
             }
             auto Res = Translate(result);
@@ -579,14 +577,14 @@ int main(){
                 Ucore.AccAdd(User_idx, Res[3]);
                 Ucore.changeScore(User_idx, 3);
             }
-            cout << result << endl;//*/
+            cout << result << '\n';//*/
         }
         /*---------------------------export_history-------------------------------*/
         else if(cmd == "export_history"){
             string account_number;
             cin >> account_number;
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             payload.push_back("get_balance_op");
@@ -606,7 +604,7 @@ int main(){
                 }
             }
             if(!check){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
             payload.push_back("get_history");
@@ -648,14 +646,13 @@ int main(){
             }
 
             outFile.close();
-            cout << "History exported to " << filename << endl;
+            cout << "History exported to " << filename << '\n';
 
         }
-
         /*----------------------------------------------------------*/
         else if(cmd == "my_accounts"){
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector<string> Accs = Ucore.AccList(User_idx);
@@ -663,15 +660,14 @@ int main(){
                 payload.push_back("get_balance_op");
                 payload.push_back(name);
             }
-            cout << runAdmin(payload) << endl;
+            cout << runAdmin(payload) << '\n';
         }
         else if(cmd == "delete_my_account"){
             string pass, name;
             cin >> name;
-            cout << "Enter account password: " << endl;
             cin >> pass;
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             payload.push_back("get_balance_op");
@@ -687,23 +683,23 @@ int main(){
                 }
             }
             if(f1){
-                cout << result << endl;
+                cout << result << '\n';
                 continue;
             }
             if(Res[3][0] != '0'){
-                cout << "Error: Account balance is positive" << endl;
+                cout << "Error: Account balance is positive" << '\n';
                 continue;
             }
             int Acc_idx = Ucore.AccIDX(User_idx, name);
             if(Acc_idx == -1){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
             payload.push_back("delete_account_op");
             payload.push_back(name);
             payload.push_back(pass);
             result = runAdmin(payload);
-            cout << result << endl; 
+            cout << result << '\n'; 
 
             if (isError(result)) {
                 Ucore.RmvAcc(User_idx, Acc_idx);
@@ -720,7 +716,7 @@ int main(){
             payload.push_back(account_id);
             payload.push_back(to_string(amount));
             string result = runAdmin(payload);
-            cout << result << endl;
+            cout << result << '\n';
 
             if (isError(result) && User_idx != -1) {
                 Ucore.changeScore(User_idx, 1);
@@ -732,11 +728,10 @@ int main(){
             double amount;
             cin >> account_id;
             cin >> amount;
-            cout << "Enter account password: " << endl;
             string password;
             cin >> password;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector <string> Accs = Ucore.AccList(User_idx);
@@ -747,7 +742,7 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
             payload.push_back("withdraw_op");
@@ -755,7 +750,7 @@ int main(){
             payload.push_back(to_string(amount));
             payload.push_back(password);
             result = runAdmin(payload);
-            cout << result << endl;
+            cout << result << '\n';
 
             if (isError(result)){
                 Ucore.changeScore(User_idx, 1);
@@ -766,11 +761,10 @@ int main(){
             double amount;
             string from_acc, to_acc;
             cin >> from_acc >> to_acc >> amount;
-            cout << "Enter account password: " << endl;
             string password;
             cin >> password;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector <string> Accs = Ucore.AccList(User_idx);
@@ -781,11 +775,11 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: source Account does not belong to user." << endl;
+                cout << "Error: source Account does not belong to user." << '\n';
                 continue;
             }
             if (amount > maximum_transaction_normal){
-                cout << "Error: Transaction limit exceeded." << endl;
+                cout << "Error: Transaction limit exceeded." << '\n';
                 continue;
             }
             payload.push_back("transfer_op");
@@ -794,7 +788,7 @@ int main(){
             payload.push_back(to_string(amount));
             payload.push_back(password);
             result = runAdmin(payload);
-            cout << result << endl;
+            cout << result << '\n';
             if (isError(result)) {
                 Ucore.changeScore(User_idx, 2);
             }
@@ -804,7 +798,7 @@ int main(){
 			string account_id;
 			cin >> account_id;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector<string> Accs = Ucore.AccList(User_idx);
@@ -815,46 +809,45 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
             payload.push_back("get_balance");
 			payload.push_back(account_id);
 			result = runAdmin(payload);
-			cout << result << endl;
+			cout << result << '\n';
             if (isError(result)){
                 Ucore.changeScore(User_idx, 1); 
             }
 		}
         else if(cmd == "my_rank"){
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             Ucore.ptrRank(User_idx);
         }
         else if(cmd == "delete_my_user"){
             string pass;
-            cout << "Enter user password: " << endl;
             cin >> pass;
             if(User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             if(Ucore.AccList(User_idx).size() != 0){
-                cout << "Error: User has accounts." << endl;
+                cout << "Error: User has accounts." << '\n';
                 continue;
             }
             if(Ucore.RmvUser(User_idx, pass)){
                 User_idx = -1;
             }
-            cout << endl;
+            cout << '\n';
         }
         else if (cmd == "request_OTP"){
             string account_id;
             cin >> account_id;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector <string> Accs = Ucore.AccList(User_idx);
@@ -865,13 +858,13 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
             long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
             if(OTP_start_time_in_MS - OTP_Time < 120000){
                 cout << "OTP: " << OTP_Code << '\n';
-                cout << "expires in " << 120 - ((OTP_start_time_in_MS - OTP_Time) / 1000ll) << "seconds\n";
+                cout << "expires in " << 120 - ((OTP_start_time_in_MS - OTP_Time) / 1000ll) << " seconds\n";
                 continue;
             }
             OTP_Time = OTP_start_time_in_MS;
@@ -890,7 +883,7 @@ int main(){
             cin >> from_account >> to_account;
             cin >> amount;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector <string> Accs = Ucore.AccList(User_idx);
@@ -901,10 +894,9 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
-            cout << "Enter OTP:\n";
             int entered_OTP;
             cin >> entered_OTP;
             if (entered_OTP != Ucore.getOTP(User_idx)){
@@ -925,13 +917,13 @@ int main(){
             payload.push_back(to_account);
             payload.push_back(to_string(amount));
             result = runAdmin(payload);
-            cout << result << endl;
+            cout << result << '\n';
         }
         else if (cmd == "show_iban"){
             string account_id;
             cin >> account_id;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector <string> Accs = Ucore.AccList(User_idx);
@@ -945,21 +937,20 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: Account does not belong to user." << endl;
+                cout << "Error: Account does not belong to user." << '\n';
                 continue;
             }
             //account_id = removeDashes(account_id);
-            cout << "IBAN: " << Ucore.add_iban(User_idx, account_index) << endl;
+            cout << "IBAN: " << Ucore.add_iban(User_idx, account_index) << '\n';
         }
         else if (cmd == "paya_transfer"){
             string from_account, destination_iban, pass;
             double amount;
             cin >> from_account >> destination_iban >> amount;
             //destination_iban = removeDashes(destination_iban);
-            cout << "Enter account password: " << endl;
             cin >> pass;
             if (User_idx == -1){
-                cout << "Error: No user logged in." << endl;
+                cout << "Error: No user logged in." << '\n';
                 continue;
             }
             vector <string> Accs = Ucore.AccList(User_idx);
@@ -970,11 +961,572 @@ int main(){
                 }
             }
             if (!belong_to){
-                cout << "Error: source Account does not belong to user." << endl;
+                cout << "Error: source Account does not belong to user." << '\n';
                 continue;
             }
             if (amount > maximum_transaction_paya){
-                cout << "Error: Transaction limit exceeded." << endl;
+                cout << "Error: Transaction limit exceeded." << '\n';
+                continue;
+            }
+            payload.push_back("paya_transfer");
+            payload.push_back(from_account);
+            payload.push_back(destination_iban);
+            payload.push_back(to_string(amount));
+            payload.push_back(pass);
+            cout << runAdmin(payload);
+        }
+
+        if(cmd == "EOF_server"){
+            payload.push_back("EOF");
+            runAdmin(payload);
+            break;
+        }
+        else if(cmd == "signup_server"){
+            int Uidx;
+            cin >> Uidx;
+            string codeMelli, pass;
+            cin >> codeMelli;
+            cin >> pass;
+            if(Uidx != -1){
+                cout << "Error: User already logged in." << '\n';
+                continue;
+            }
+            Ucore.SignUP(codeMelli, pass);
+            cout << '\n';
+        }
+        else if(cmd == "login_server"){
+            int Uidx;
+            cin >> Uidx;
+            string codeMelli, pass;
+            cin >> codeMelli;
+            cin >> pass;
+            if(Uidx != -1){
+                cout << "Error: User already logged in." << '\n';
+                continue;
+            }
+            User_idx = Ucore.UserIDX(codeMelli, pass);
+            cout << '\n';
+        }
+        else if(cmd == "logout_server"){
+            int Uidx;
+            cin >> Uidx;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            User_idx = -1;
+            cout << "Logged out" << '\n';
+        }
+        else if(cmd == "list_branches_server"){
+            int Uidx;
+            cin >> Uidx;
+            payload.push_back("list_branches");
+            cout << runAdmin(payload) << '\n';
+        }
+        /*----------------------------------------------------------*/
+        else if(cmd == "request_account_server"){
+            int Uidx;
+            cin >> Uidx;
+            string branch_id;
+            cin >> branch_id;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            payload.push_back("is_branch_op");
+            payload.push_back(branch_id);
+            result = runAdmin(payload);
+            auto Res = Translate(result);
+            payload.clear();
+            if(Res[0] != "Yes"){
+                cout << "Error: Branch not found." << '\n';
+                continue;
+            }
+            payload.push_back("add_account_request_op");
+            payload.push_back(Ucore.UserCode(Uidx));
+            payload.push_back(branch_id);
+            result = runAdmin(payload);
+            Res = Translate(result);
+            cout << result << '\n';
+            payload.clear();
+            if(!isError(result)){
+                Ucore.Add_Request(Uidx, stoi(Res[3]));
+            }
+        }
+        else if(cmd == "my_requests_server"){
+            int Uidx;
+            cin >> Uidx;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            auto RequestList = Ucore.UserRequestList(Uidx);
+            for(auto id : RequestList){
+                payload.push_back("print_request_op");
+                payload.push_back(to_string(id));
+                cout << runAdmin(payload) << '\n';
+                payload.clear();
+            }
+        }
+        else if(cmd == "cancel_request_server"){
+            int Uidx;
+            cin >> Uidx;
+            ll req_Id;
+            cin >> req_Id;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            payload.push_back("cancel_request_op");
+            payload.push_back(Ucore.UserCode(Uidx));
+            payload.push_back(to_string(req_Id));
+            cout << runAdmin(payload) << '\n';
+        }
+        else if(cmd == "activate_account_server"){
+            int Uidx;
+            cin >> Uidx;
+            string pass;
+            ll req_Id;
+            cin >> req_Id;
+            cin >> pass;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            payload.push_back("is_request_usable_op");
+            payload.push_back(Ucore.UserCode(Uidx));
+            payload.push_back(to_string(req_Id));
+            result = runAdmin(payload);
+            payload.clear();
+            if(isError(result)){
+                cout << result << '\n';
+                continue;
+            }
+            auto Res = Translate(result);
+            payload.push_back("create_account_op");
+            payload.push_back(Res[2]);
+            payload.push_back(pass);
+            result = runAdmin(payload);
+            if(!isError(result)){
+                auto Res = Translate(result);
+                Ucore.AccAdd(Uidx, Res[3]);
+                Ucore.changeScore(Uidx, 3);
+            }
+            cout << result << '\n';//*/
+        }
+        /*---------------------------export_history-------------------------------*/
+        else if(cmd == "export_history_server"){
+            int Uidx;
+            cin >> Uidx;
+            string account_number;
+            cin >> account_number;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            payload.push_back("get_balance_op");
+            payload.push_back(account_number);
+            string checkResult = runAdmin(payload);
+            payload.clear();
+            if(checkResult.rfind("Error:", 0) == 0){
+                cout << checkResult;
+                continue;
+            }
+            vector<string> Accs = Ucore.AccList(Uidx);
+            bool check = false;
+            for(auto &name : Accs){
+                if(name == account_number){
+                    check = true;
+                    break;
+                }
+            }
+            if(!check){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            payload.push_back("get_history");
+            payload.push_back(account_number);
+            result = runAdmin(payload);
+            string filename = "history_" + account_number + ".csv";
+            ofstream outFile(filename);
+            outFile << "id,timestamp,type,amount,balance_after\n";
+            int start = 0;
+            int siz = result.size();
+            while(start < siz){
+                int end = start;
+                while(end < siz && result[end] != '\n'){
+                    end++;
+                }
+                string line = result.substr(start, end-start);
+                if(line != ""){
+                    vector<string> parts;
+                    int prev = 0;
+                    int pos = 0;
+                    while((pos = line.find(" | ", prev)) != -1){
+                        parts.push_back(line.substr(prev, pos - prev));
+                        prev = pos + 3;
+                    }
+                    parts.push_back(line.substr(prev));
+
+                    if(parts.size() == 5){
+                        string id = parts[0];
+                        string timestamp = parts[1];
+                        string type = parts[2];
+                        string amount = parts[3];
+                        string balance = parts[4].substr(9);
+
+                        outFile << id << "," << timestamp << "," << type << "," << amount << "," << balance << "\n";
+                    }
+                }
+
+                start = end + 1;
+            }
+
+            outFile.close();
+            cout << "History exported to " << filename << '\n';
+
+        }
+        /*----------------------------------------------------------*/
+        else if(cmd == "my_accounts_server"){
+            int Uidx;
+            cin >> Uidx;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector<string> Accs = Ucore.AccList(Uidx);
+            for(auto &name : Accs){
+                payload.push_back("get_balance_op");
+                payload.push_back(name);
+            }
+            cout << runAdmin(payload) << '\n';
+        }
+        else if(cmd == "delete_my_account_server"){
+            int Uidx;
+            cin >> Uidx;
+            string pass, name;
+            cin >> name;
+            cin >> pass;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            payload.push_back("get_balance_op");
+            payload.push_back(name);
+            result = runAdmin(payload);
+            payload.clear();
+            auto Res = Translate(result);
+            bool f1 = 0;
+            for(auto &str : Res){
+                if(str == "Error:"){
+                    f1 = 1;
+                    break;
+                }
+            }
+            if(f1){
+                cout << result << '\n';
+                continue;
+            }
+            if(Res[3][0] != '0'){
+                cout << "Error: Account balance is positive" << '\n';
+                continue;
+            }
+            int Acc_idx = Ucore.AccIDX(Uidx, name);
+            if(Acc_idx == -1){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            payload.push_back("delete_account_op");
+            payload.push_back(name);
+            payload.push_back(pass);
+            result = runAdmin(payload);
+            cout << result << '\n'; 
+
+            if (isError(result)) {
+                Ucore.RmvAcc(Uidx, Acc_idx);
+                Ucore.changeScore(Uidx, -2);    
+            }
+      
+        }
+		else if (cmd == "deposit_to_server"){
+            int Uidx;
+            cin >> Uidx;
+            string account_id;
+            cin >> account_id;
+            double amount;
+            cin >> amount;
+            payload.push_back("deposit");
+            payload.push_back(account_id);
+            payload.push_back(to_string(amount));
+            string result = runAdmin(payload);
+            cout << result << '\n';
+
+            if (isError(result) && Uidx != -1) {
+                Ucore.changeScore(Uidx, 1);
+            }
+
+        }
+		else if (cmd == "withdraw_from_server"){
+            int Uidx;
+            cin >> Uidx;
+            string account_id;
+            double amount;
+            cin >> account_id;
+            cin >> amount;
+            string password;
+            cin >> password;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            payload.push_back("withdraw_op");
+            payload.push_back(account_id);
+            payload.push_back(to_string(amount));
+            payload.push_back(password);
+            result = runAdmin(payload);
+            cout << result << '\n';
+
+            if (isError(result)){
+                Ucore.changeScore(Uidx, 1);
+            }
+
+        }
+		else if (cmd == "send_money_server"){
+            int Uidx;
+            cin >> Uidx;
+            double amount;
+            string from_acc, to_acc;
+            cin >> from_acc >> to_acc >> amount;
+            string password;
+            cin >> password;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == from_acc){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: source Account does not belong to user." << '\n';
+                continue;
+            }
+            if (amount > maximum_transaction_normal){
+                cout << "Error: Transaction limit exceeded." << '\n';
+                continue;
+            }
+            payload.push_back("transfer_op");
+            payload.push_back(from_acc);
+            payload.push_back(to_acc);
+            payload.push_back(to_string(amount));
+            payload.push_back(password);
+            result = runAdmin(payload);
+            cout << result << '\n';
+            if (isError(result)) {
+                Ucore.changeScore(Uidx, 2);
+            }
+
+		}
+		else if (cmd == "balance_inquiry_server"){
+            int Uidx;
+            cin >> Uidx;
+            string account_id;
+			cin >> account_id;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector<string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            for (auto &name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            payload.push_back("get_balance");
+			payload.push_back(account_id);
+			result = runAdmin(payload);
+			cout << result << '\n';
+            if (isError(result)){
+                Ucore.changeScore(Uidx, 1); 
+            }
+		}
+        else if(cmd == "my_rank_server"){
+            int Uidx;
+            cin >> Uidx;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            Ucore.ptrRank(Uidx);
+        }
+        else if(cmd == "delete_my_user_server"){
+            int Uidx;
+            cin >> Uidx;
+            string pass;
+            cin >> pass;
+            if(Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            if(Ucore.AccList(Uidx).size() != 0){
+                cout << "Error: User has accounts." << '\n';
+                continue;
+            }
+            if(Ucore.RmvUser(Uidx, pass)){
+                User_idx = -1;
+            }
+            cout << '\n';
+        }
+        else if (cmd == "request_OTP_server"){
+            int Uidx;
+            cin >> Uidx;
+            string account_id;
+            cin >> account_id;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == account_id){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            long long OTP_start_time_in_MS = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+            if(OTP_start_time_in_MS - OTP_Time < 120000){
+                cout << "OTP: " << OTP_Code << '\n';
+                cout << "expires in " << 120 - ((OTP_start_time_in_MS - OTP_Time) / 1000ll) << " seconds\n";
+                continue;
+            }
+            OTP_Time = OTP_start_time_in_MS;
+            int OTP = rand() * rand();
+            OTP = abs(OTP);
+            OTP %= 1000000;
+            OTP_Code = to_string(OTP);
+            Ucore.SetOTP(Uidx, OTP);
+            Ucore.SetOTPTime(Uidx, OTP_start_time_in_MS);
+            cout << "OTP: " << OTP << '\n';
+            cout << "expires in 120 seconds\n";
+        }
+        else if (cmd == "online_payment_server"){
+            int Uidx;
+            cin >> Uidx;
+            double amount;
+            string from_account, to_account;
+            cin >> from_account >> to_account;
+            cin >> amount;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == from_account){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            int entered_OTP;
+            cin >> entered_OTP;
+            if (entered_OTP != Ucore.getOTP(Uidx)){
+                cout << "Error: Invalid OTP.\n";
+                continue;
+            }
+            long long now_time = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+            if (now_time - Ucore.GetOTPTime(Uidx) > 120 * 1000){
+                cout << "Error: OTP expired.\n";
+                continue;
+            }
+            if (amount > maximum_transaction_online){
+                cout << "Error: transaction limit exceeded.\n";
+                continue;
+            }
+            payload.push_back("transfer_op_no_password");
+            payload.push_back(from_account);
+            payload.push_back(to_account);
+            payload.push_back(to_string(amount));
+            result = runAdmin(payload);
+            cout << result << '\n';
+        }
+        else if (cmd == "show_iban_server"){
+            int Uidx;
+            cin >> Uidx;
+            string account_id;
+            cin >> account_id;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            int account_index;
+            for (int i = 0; i < Accs.size(); ++ i){
+                if (Accs[i] == account_id){
+                    belong_to = true;
+                    account_index = i;
+                    break;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: Account does not belong to user." << '\n';
+                continue;
+            }
+            //account_id = removeDashes(account_id);
+            cout << "IBAN: " << Ucore.add_iban(Uidx, account_index) << '\n';
+        }
+        else if (cmd == "paya_transfer_server"){
+            int Uidx;
+            cin >> Uidx;
+            string from_account, destination_iban, pass;
+            double amount;
+            cin >> from_account >> destination_iban >> amount;
+            //destination_iban = removeDashes(destination_iban);
+            cin >> pass;
+            if (Uidx == -1){
+                cout << "Error: No user logged in." << '\n';
+                continue;
+            }
+            vector <string> Accs = Ucore.AccList(Uidx);
+            bool belong_to = false;
+            for (auto& name : Accs){
+                if (name == from_account){
+                    belong_to = true;
+                }
+            }
+            if (!belong_to){
+                cout << "Error: source Account does not belong to user." << '\n';
+                continue;
+            }
+            if (amount > maximum_transaction_paya){
+                cout << "Error: Transaction limit exceeded." << '\n';
                 continue;
             }
             payload.push_back("paya_transfer");
@@ -986,9 +1538,7 @@ int main(){
         }
 
         else {
-            cout << "Error: Unknown command" << endl;
+            cout << "Error: Unknown command" << '\n';
         }
     }
-    Ucore.write_users();
-    
 }
