@@ -5,6 +5,8 @@ ADMIN_TARGET = src/admin
 USER_TARGET = src/user
 ADMIN_SERVER = src/admin-server
 USER_SERVER = src/user-server
+PYTHON = python3
+SCRIPT = src/newclient
 
 all: $(ADMIN_TARGET) $(USER_TARGET) $(ADMIN_SERVER) $(USER_SERVER)
 
@@ -31,6 +33,9 @@ run-server-admin: $(ADMIN_SERVER)
 
 run-server-user: $(USER_SERVER)
 	./$(USER_SERVER)
+
+run-client:
+	$(PYTHON) $(SCRIPT)
 
 clean:
 	rm -f $(ADMIN_TARGET) $(USER_TARGET) $(ADMIN_SERVER) $(USER_SERVER)
