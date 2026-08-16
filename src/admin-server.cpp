@@ -188,7 +188,7 @@ class Admin_Manager{
         }
 
         int is_authorized(const httplib::Request& req, int Admin_idx){
-            if(req.has_header("Authorization") == 0 || Admin_idx != -1){
+            if(req.has_header("Authorization") == 0 || Admin_idx == -1){
                 return false;
             }
             string auth_header = req.get_header_value("Authorization");
