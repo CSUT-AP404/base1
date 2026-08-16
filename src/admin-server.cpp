@@ -23,7 +23,7 @@ typedef long double ld;
 #define all(x) (x).begin(), (x).end()
 
 const int TIMEOUT_MINUTES = 15;
-
+const string ADMIN_FIX = "0000000000";
 string runAdmin(const vector<string>& inputs){
     if(inputs.size() == 0){
         return "";
@@ -220,10 +220,11 @@ class Admin_Manager{
             write_admins();
             return true;
         }
-        pair<int, string> Login(int &Admin_idx, string &codeMelli, string &pass){
+        pair<int, string> Login(int &Admin_idx, string &pass){
             if(Admin_idx != -1){
                 return mp(0, "");
             }
+            string codeMelli = ADMIN_FIX;
             int Tmp = AdminIDX(codeMelli, Hasher(pass));
             if(Tmp == -1){
                 return mp(1, "");
@@ -326,8 +327,8 @@ void Set_Response_Admin(const httplib::Request& req, httplib::Response& res, Adm
         res.set_content(response.dump(), "application/json");
         return;
     }
-    else if(payload[0] == "login"){           // inputs: codeMelli, password                         
-        auto [E, token] = AM.Login(Admin_idx, payload[1], payload[2]);
+    else if(payload[0] == "login"){           // inputs: password only
+        auto [E, token] = AM.Login(Admin_idx, payload[1]);
         if(E == 0){
             response["ok"] = false;
             response["error"] = "Error: Admin already logged in.";
@@ -604,7 +605,11 @@ int main(){
     httplib::Server server;                 //http://127.0.0.1:8080
     Admin_Manager AM;
     int Admin_idx = -1;
-    
+    {
+        string zero = ADMIN_FIX;
+        string pass = "wopwop";
+        AM.SignUp(-1, zero, pass);
+    }
     server.set_error_handler([](const httplib::Request& req, httplib::Response& res){
         if(res.status == 404){
             json response;

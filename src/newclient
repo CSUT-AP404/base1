@@ -72,16 +72,16 @@ class BaseClient:
 
 
 
-
+ADMIN_FIXED = 0000000000
 class AdminClient(BaseClient):
     def __init__(self, baseLink="http://127.0.0.1:8080"):
         super().__init__(baseLink)
 
-    def login(self, codeMelli, password):
+    def login(self , password):
         response = self._request(
             "POST",
             "/admin/auth/login",
-            f"login {codeMelli} {password}"
+            f"login {ADMIN_FIXED} {password}"
         )
 
         token = self._token_from_response(response)
@@ -829,11 +829,9 @@ def main():
                     print("Invalid!!")
 
         elif req == "2":
-            code_melli = input("Admin National ID: ").strip()
             password = input("Admin Password: ")
 
             result = admin_client.login(
-                code_melli,
                 password
             )
 
