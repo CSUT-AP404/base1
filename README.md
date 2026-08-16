@@ -1,7 +1,7 @@
 # Banking System 
 **Course:** Advanced Programming  
 **Group:** base1  
-**Members:** Matin Mohammadi — Rahan Hemmatinejad — Armin Sahraie
+**Members:** Matin Mohammadi — Rahan Hemmatinejad — Armin Sahraei
 
 ---
 
@@ -282,6 +282,272 @@ The request ID sequence should begin at `2001` and continue incrementally.
 As in previous phases, malformed input or invalid commands must not crash the program. The system should handle bad input safely and return meaningful error messages instead of terminating unexpectedly.
 
 A final implementation note is that filename consistency for the bank data file is important. If the project uses both `data/BankـData.json` and `data/Bank_Data.json` in different parts of the code, that mismatch should be corrected to prevent reset/load inconsistencies and possible data loss.
+
+## Phase Four
+
+Phase Four extends the banking system by introducing a client-server architecture.
+Instead of interacting with the banking logic directly through the console applications,
+users and administrators can communicate with the system through HTTP requests.
+
+The main goal of this phase is to separate the banking logic from the communication layer
+and provide dedicated clients for ordinary users and administrators.
+
+### Client-Server Architecture
+
+The system is divided into several components:
+
+- `user.cpp` — contains the main banking logic and user-side operations.
+- `admin.cpp` — contains administrative operations.
+- `user-server.cpp` — provides an HTTP interface for user operations.
+- `admin-server.cpp` — provides an HTTP interface for administrative operations.
+- `bankClient.py` — provides Python clients for communicating with the servers.
+
+The general architecture is:
+
+```text
+                    HTTP Requests
+                         |
+          +--------------+--------------+
+          |                             |
+          v                             v
+   User Client                    Admin Client
+   (Python)                       (Python)
+          |                             |
+          v                             v
+   User Server                    Admin Server
+          |                             |
+          v                             v
+      user.cpp                    admin.cpp
+          \                             /
+           \                           /
+            +-------- JSON Data -------+
+```
+
+The client is responsible for communication with the server, while the server is
+responsible for receiving requests, translating them into banking commands, executing
+the corresponding operation, and returning a JSON response.
+
+### HTTP Communication
+
+Phase Four introduces HTTP endpoints for the operations that were previously available
+through direct commands.
+
+Requests contain the banking command and its required arguments in the request body.
+The server translates the request body into the corresponding command before passing it
+to the banking logic.
+
+For example:
+
+```text
+signup 1234567890 password
+```
+
+is sent by the client to the appropriate user endpoint.
+
+Similarly, an account deposit can be represented as:
+
+```text
+deposit_to <account_id> <amount>
+```
+
+The server processes the command and returns the result as a JSON response.
+
+This approach keeps the existing banking commands while adding a network interface
+around them.
+
+### User Server
+
+The user server provides HTTP endpoints for ordinary users.
+
+The server supports operations including:
+
+- User signup
+- User login and logout
+- Listing available branches
+- Creating account opening requests
+- Viewing account requests
+- Activating approved account requests
+- Viewing user accounts
+- Depositing money
+- Withdrawing money
+- Card-to-card transfers
+- Paya transfers
+- Balance inquiries
+- Account history
+- OTP-related operations
+- Online payments
+- IBAN operations
+- User account deletion
+- User ranking
+
+The user server listens on:
+
+```text
+127.0.0.1:8080
+```
+
+### Admin Server
+
+The admin server provides HTTP endpoints for administrative operations.
+
+The administrator can use the server to perform operations such as:
+
+- Admin authentication
+- Branch management
+- Branch dashboards
+- Reviewing account opening requests
+- Approving and rejecting account requests
+- Managing accounts
+- Managing Paya requests
+- Viewing transactions and histories
+- Managing transfer and inquiry fees
+- Viewing rankings
+- System management operations
+
+The admin server is separated from the user server so that administrative operations
+are exposed through a dedicated interface.
+
+### Authentication
+
+Phase Four introduces authentication at the HTTP layer.
+
+After a successful login, the server returns an authentication token to the client.
+The Python client stores this token and sends it with subsequent authenticated requests.
+
+Authenticated requests use the following HTTP header:
+
+```text
+Authorization: Bearer <token>
+```
+
+This prevents unauthenticated clients from directly accessing protected banking
+operations.
+
+The client also removes its stored token after a successful logout.
+
+### Python Client
+
+A Python client was added to simplify communication with the HTTP servers.
+
+The client provides two main classes:
+
+```python
+UserClient
+AdminClient
+```
+
+Both clients share common HTTP functionality such as:
+
+- Sending HTTP requests
+- Setting request headers
+- Sending command payloads
+- Handling JSON responses
+- Handling connection errors
+- Storing authentication tokens
+
+The user and admin clients then implement their own banking and administrative
+operations on top of this common communication layer.
+
+### Error Handling
+
+The client handles communication failures without terminating the program.
+
+For example, if the corresponding server is not running, the client reports a
+connection error instead of crashing:
+
+```text
+Connection error: ...
+```
+
+HTTP errors are also converted into structured responses containing information
+about the failure.
+
+The server continues to return JSON responses so that the client can process
+successful and unsuccessful operations consistently.
+
+### Running Phase Four
+First of all, requires this:
+```bash
+python -m pip install -r requirements.txt
+```
+The servers must be started before using the Python client.
+
+The project should be run from the root directory of the repository because the
+server source code uses paths relative to the project root.
+
+For example:
+
+```bash
+cd base1-phase4-continue
+./src/user-server
+```
+
+The user server then listens on:
+
+```text
+127.0.0.1:8080
+```
+
+The corresponding client can then be started separately:
+
+```bash
+python3 bankClient.py
+```
+
+The administrative server should also be started before performing administrative
+operations.
+
+### Important Execution Note
+
+The HTTP server compiles the corresponding banking source during startup.
+Therefore, the server should be launched from the project root directory.
+
+For example, the following is recommended:
+
+```bash
+cd base1-phase4-continue
+./src/user-server
+```
+
+Running the server from inside the `src/` directory can cause relative paths such as:
+
+```text
+src/user.cpp
+```
+
+to be resolved incorrectly as:
+
+```text
+src/src/user.cpp
+```
+
+which prevents the server from starting.
+
+### Phase Four Summary
+
+Phase Four separates the banking system into a communication layer and a banking
+logic layer.
+
+The resulting system consists of:
+
+```text
+Python Client
+     |
+     | HTTP
+     v
+HTTP Server
+     |
+     | Banking Commands
+     v
+Banking Logic
+     |
+     v
+JSON Data
+```
+
+This architecture makes it possible to interact with the banking system remotely
+through HTTP while keeping the existing banking functionality and persistent data
+management.
 
 ## Phase Four
 
