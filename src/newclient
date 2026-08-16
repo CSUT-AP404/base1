@@ -233,7 +233,7 @@ class AdminClient(BaseClient):
         return self._request(
             "GET",
             f"/admin/accounts/{account_id}/transactions",
-            f"get_transaction {account_id}"
+            f"get_history {account_id}"
         )
 
     def get_account_history(self, account_id):

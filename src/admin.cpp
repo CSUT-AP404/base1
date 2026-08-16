@@ -1396,12 +1396,16 @@ class Core{
         }
     /*--------------------------------------------------*/
     void read(){
-        ifstream inFile("data/BankـData.json");
+        ifstream inFile("data/Bank_Data.json");
         if(!inFile.is_open()){
             return;
         }
         json j;
-        inFile >> j;
+        try{
+            inFile >> j;
+        }catch(const std::exception& e){
+            return;
+        }
         inFile.close();
         Branches.clear();
         FAccounts.clear();
@@ -1600,7 +1604,10 @@ class Core{
         j["Trans_Cnt"]   = Trans_Cnt;
         j["Request_Cnt"] = Request_Cnt;
 
-        ofstream outFile("data/BankـData.json");
+        ofstream outFile("data/Bank_Data.json");
+        if(!outFile.is_open()){
+            return;
+        }
         outFile << j.dump(4);
         outFile.close();
     }
@@ -1688,7 +1695,7 @@ int main(){
     while(cin >> cmd){
         if(cmd=="EOF"){
             core.write();
-            exit(0);
+            break;
         }
         /*-------------Branches----------------------*/
         else if(cmd == "create_branch"){
