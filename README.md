@@ -65,6 +65,7 @@ g++ -std=c++17 -Wall -o src/user src/user.cpp
 g++ -std=c++17 -Wall -o src/admin src/admin.cpp
 g++ -std=c++17 -Wall -o src/user-server src/user-server.cpp
 g++ -std=c++17 -Wall -o src/admin-server src/admin-server.cpp
+python3 src/newclient
 ```
 
 ### Step 4 — Run admin or user or servers
@@ -105,6 +106,10 @@ make run-server-admin
 ```bash
 make run-server-user
 ```
+### Compile and run client in one command
+```bash
+make run-client
+```
 
 ---
 
@@ -117,6 +122,7 @@ make run-server-user
 | `make run-user` | Compiles and runs user immediately |
 | `make run-server-admin` | Compiles and runs server (for admins) immediately |
 | `make run-server-user` | Compiles and runs server (for users) immediately |
+| `make run-client` | Compiles and runs client immediately |
 | `make clean` | Deletes compiled files |
 
 ---
