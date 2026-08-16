@@ -72,16 +72,15 @@ class BaseClient:
 
 
 
-ADMIN_FIXED = 0000000000
 class AdminClient(BaseClient):
     def __init__(self, baseLink="http://127.0.0.1:8080"):
         super().__init__(baseLink)
 
-    def login(self , password):
+    def login(self, codeMelli, password):
         response = self._request(
             "POST",
             "/admin/auth/login",
-            f"login {password}"
+            f"login {codeMelli} {password}"
         )
 
         token = self._token_from_response(response)
@@ -233,7 +232,7 @@ class AdminClient(BaseClient):
         return self._request(
             "GET",
             f"/admin/accounts/{account_id}/transactions",
-            f"get_history {account_id}"
+            f"get_transaction {account_id}"
         )
 
     def get_account_history(self, account_id):
@@ -763,8 +762,16 @@ def admin_menu(client):
             elif req == "21":
                 print_result(client.logout())
                 break
+
             elif req == "+":
-                pass #for now
+                code_melli = input("New Admin National ID: ").strip()
+                passwod = input("New Admin Password: ")
+                print_result(
+                    client.signup(
+                        code_melli,
+                        passwod
+                    )
+                )
             elif req == "0":
                 break
 
@@ -831,18 +838,39 @@ def main():
                     print("Invalid!!")
 
         elif req == "2":
-            password = input("Admin Password: ")
+            while True:
+                print("\n--- Admin Section ---")
+                print("1. Signup")
+                print("2. Login")
+                print("0. Back")
 
-            result = admin_client.login(
-                password
-            )
+                sub = input("Enter: ").strip()
+                
+                if sub == "1":
+                    code_melli = input("Admin National ID: ").strip()
+                    password = input("Admin Password: ")
+                    print_result(
+                        admin_client.signup(
+                            code_melli,
+                            password
+                        )
+                    )
 
-            if result.get("ok"):
-                print("Admin login successful.")
-                admin_menu(admin_client)
-            else:
-                print("Login failed.")
-                print_result(result)
+                elif sub == "2":
+                    code_melli = input("Admin National ID: ").strip()
+                    password = input("Admin Password: ")
+
+                    result = admin_client.login(
+                        code_melli,
+                        password
+                    )
+
+                    if result.get("ok"):
+                        print("Admin login successful.")
+                        admin_menu(admin_client)
+                    else:
+                        print("Login failed.")
+                        print_result(result)
 
         elif req == "0":
             print("Exiting...")
