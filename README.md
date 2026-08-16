@@ -481,6 +481,68 @@ about the failure.
 The server continues to return JSON responses so that the client can process
 successful and unsuccessful operations consistently.
 
+### CMake Build System
+
+Phase Four also introduces CMake as an additional build system for the C++ project.
+
+The CMakeLists.txt file describes the project structure, C++ standard, source files,
+dependencies, and executable targets. This removes the need to manually write separate
+g++ commands for each component.
+
+The project uses C++17 and checks for the required header-only dependencies:
+
+cpp-httplib — include/httplib.h
+
+nlohmann/json — include/json.hpp
+
+picosha2 — include/picosha2.h
+
+The CMake configuration builds the following executables:
+
+user
+
+admin
+
+user-server
+
+admin-server
+
+The executables are placed in the src/ directory so that they remain compatible with
+the current server execution paths.
+
+### Building with CMake
+
+CMake should be run from the root directory of the project.
+
+First, create a build directory:
+
+cd base1-phase4-continue
+mkdir build
+cd build
+
+Then configure the project:
+
+cmake ..
+
+CMake reads the CMakeLists.txt file from the project root and generates the required
+build configuration.
+
+After configuration, compile the project with:
+
+make
+
+or:
+
+cmake --build .
+
+After a successful build, the following executables are available:
+
+src/
+├── user
+├── admin
+├── user-server
+└── admin-server
+
 ### Running Phase Four
 First of all, requires this:
 ```bash
