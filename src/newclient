@@ -81,7 +81,7 @@ class AdminClient(BaseClient):
         response = self._request(
             "POST",
             "/admin/auth/login",
-            f"login {ADMIN_FIXED} {password}"
+            f"login {password}"
         )
 
         token = self._token_from_response(response)

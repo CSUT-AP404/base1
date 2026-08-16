@@ -262,3 +262,7 @@ The request ID sequence should begin at `2001` and continue incrementally.
 As in previous phases, malformed input or invalid commands must not crash the program. The system should handle bad input safely and return meaningful error messages instead of terminating unexpectedly.
 
 A final implementation note is that filename consistency for the bank data file is important. If the project uses both `data/BankـData.json` and `data/Bank_Data.json` in different parts of the code, that mismatch should be corrected to prevent reset/load inconsistencies and possible data loss.
+
+## Phase Four
+
+- **Admin Password:** `wopwop`
