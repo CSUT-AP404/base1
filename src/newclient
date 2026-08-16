@@ -638,6 +638,7 @@ def UserMenu(client):
 def admin_menu(client):
     while True:
         print("=" * 15 + "Admin Menu" + "=" * 20)
+        print("+. Adding a New Admin")
         print("1. Create New Branch")
         print("2. View All Branches")
         print("3. Branch Dashboard")
@@ -659,7 +660,7 @@ def admin_menu(client):
         print("19. Set Balance Inquiry Fee")
         print("20. Show Ranking")
         print("21. Logout")
-        print("0. Back")
+        print("0.  Back")
         print("=" * 50)
 
         req = input("Enter your request: ").strip()
@@ -762,7 +763,8 @@ def admin_menu(client):
             elif req == "21":
                 print_result(client.logout())
                 break
-
+            elif req == "+":
+                pass #for now
             elif req == "0":
                 break
 

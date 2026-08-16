@@ -971,50 +971,6 @@ class Core{
             }
             cout << "Error: Account not found." << '\n';
         }
-        void set_account_status(string &ID, string &Status){
-            Account_Id AI(ID);
-            if(Status == "inactive" || Status == "close"){
-                for(int i = 0, sz = (int)FAccounts.size(); i < sz; i++){
-                    if(AI == FAccounts[i].getID()){
-                        FAccounts[i].Active = false;
-                        BAccounts.push_back(FAccounts[i]);
-                        FAccounts.erase(FAccounts.begin() + i);
-                        cout << "Account status updated. New status: inactive" << '\n';
-                        write();
-                        return;
-                    }
-                }
-                for(auto &A : BAccounts){
-                    if(AI == A.getID()){
-                        cout << "Error: Account is inactive." << '\n';
-                        return;
-                    }
-                }
-                cout << "Error: Account not found." << '\n';
-            }
-            else if(Status == "active" || Status == "open"){
-                for(int i = 0, sz = (int)BAccounts.size(); i < sz; i++){
-                    if(AI == BAccounts[i].getID()){
-                        BAccounts[i].Active = true;
-                        FAccounts.push_back(BAccounts[i]);
-                        BAccounts.erase(BAccounts.begin() + i);
-                        cout << "Account status updated. New status: active" << '\n';
-                        write();
-                        return;
-                    }
-                }
-                for(auto &A : FAccounts){
-                    if(AI == A.getID()){
-                        cout << "Error: Account is already active." << '\n';
-                        return;
-                    }
-                }
-                cout << "Error: Account not found." << '\n';
-            }
-            else{
-                cout << "Error: Invalid status." << '\n';
-            }
-        }
         void Account_List(){
             cout << fixed << setprecision(2);
             for(auto &A : FAccounts){
@@ -1405,7 +1361,7 @@ class Core{
             inFile >> j;
         }catch(const std::exception& e){
             return;
-        }
+        }        
         inFile.close();
         Branches.clear();
         FAccounts.clear();
@@ -1605,10 +1561,7 @@ class Core{
         j["Request_Cnt"] = Request_Cnt;
 
         ofstream outFile("data/Bank_Data.json");
-        if(!outFile.is_open()){
-            return;
-        }
-        outFile << j.dump(4);
+                outFile << j.dump(4);
         outFile.close();
     }
     /*--------------------------------------------------*/
@@ -1845,17 +1798,7 @@ int main(){
                 continue;
             }
             core.Delete_Account(pass, id);
-            continue;
-        }
-        else if(cmd == "set_account_status"){
-            string id, status;
-            cin >> id >> status;
-            if(!isAccNumber(id)){
-                cout << "Error: Invalid account number." << '\n';
-                continue;
-            }
-            core.set_account_status(id, status);
-            continue ;
+            continue ; 
         }
         else if(cmd == "list_accounts"){
             core.Account_List();
