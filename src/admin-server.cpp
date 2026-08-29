@@ -246,10 +246,10 @@ class Admin_Manager{
                     string token = auth_header.substr(7);
                     if(active_sessions.find(token) != active_sessions.end()){
                         if(active_sessions[token].user_pass.first != Admins[Admin_idx].codeMelli){
-                            active_sessions.erase(token);
-                            return 4;
+                            return 3;
                         }
-                        return 3;
+                        active_sessions.erase(token);
+                        return 4;
                     }
                     return 2;
                 }
@@ -388,6 +388,7 @@ void Set_Response_Admin(const httplib::Request& req, httplib::Response& res, Adm
             res.set_content(response.dump(), "application/json");
             return;
         }
+        Admin_idx = -1;
         response["ok"] = true;
         response["message"] = "Logged out.";
         res.status = 200;

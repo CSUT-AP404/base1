@@ -249,8 +249,9 @@ class Token_Manager{
             }
             return -1;
         }
-        int is_authorized(const httplib::Request& req, int User_idx){
-            if(req.has_header("Authorization") == 0 || User_idx == -1){
+        int is_authorized(const httplib::Request& req, int &User_idx){
+            User_idx = -1;
+            if(req.has_header("Authorization") == 0){
                 return -1;
             }
             string auth_header = req.get_header_value("Authorization");
@@ -260,9 +261,6 @@ class Token_Manager{
             string token = auth_header.substr(7);
             auto it = active_sessions.find(token);
             if(it == active_sessions.end()){
-                return -1;
-            }
-            if(active_sessions[token].user_pass.first != Users[User_idx].codeMelli){
                 return 0;
             }
             auto now = chrono::steady_clock::now();
@@ -271,8 +269,15 @@ class Token_Manager{
                 active_sessions.erase(it);
                 return 0;
             }
-            it->second.last_activity = now;
-            return 1;
+            string codeMelli = it->second.user_pass.first;
+            for(int i = 0, sz = (int)Users.size(); i < sz; i++){
+                if(Users[i].codeMelli == codeMelli){
+                    User_idx = i;
+                    it->second.last_activity = now;
+                    return 1;
+                }
+            }
+            return 0;
         }
         string Login(string &codeMelli, string &pass){       //runs only if login is ok
             string token = generate_token();
@@ -327,15 +332,16 @@ class Token_Manager{
         inFile.close();
     }
 };
-void Set_Response_USER(const httplib::Request& req, httplib::Response& res, Token_Manager &TM, int &User_idx){
+void Set_Response_USER(const httplib::Request& req, httplib::Response& res, Token_Manager &TM){
     vector<string> payload = Translate(req.body);
     json response;
     if(payload.empty()){
         res.status = 200;
         return;
     }
+    int User_idx = -1;
     int Token_status = TM.is_authorized(req, User_idx);
-    if(User_idx != -1 && Token_status != 1){
+    if(req.has_header("Authorization") && Token_status != 1){
         if(Token_status == -1){
             res.status = 401;
             response["ok"] = false;
@@ -479,7 +485,6 @@ int main(){
     }
     httplib::Server server;                 //http://127.0.0.1:8080
     Token_Manager TM;
-    int User_idx = -1;
     
     server.set_error_handler([](const httplib::Request& req, httplib::Response& res){
         if(res.status == 404){
@@ -489,71 +494,70 @@ int main(){
             res.set_content(response.dump(), "application/json");
         }
     });
-    server.Post("/auth/signup", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/auth/signup", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post("/auth/login", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/auth/login", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Delete("/auth/session", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Delete("/auth/session", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
     //list_branches
-    server.Get("/branches", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Get("/branches", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post("/accounts/requests", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/accounts/requests", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Get("/accounts/requests", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Get("/accounts/requests", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Delete(R"(/accounts/requests/(\d+))", [&TM, &User_idx]
+    server.Delete(R"(/accounts/requests/(\d+))", [&TM]
     (const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+        Set_Response_USER(req, res, TM);
     });
-    server.Patch(R"(/accounts/([^/]+)/activation)", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Patch(R"(/accounts/([^/]+)/activation)", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Delete(R"(/accounts/([^/]+))", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Delete(R"(/accounts/([^/]+))", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post(R"(/accounts/([^/]+)/deposits)", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post(R"(/accounts/([^/]+)/deposits)", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post(R"(/accounts/([^/]+)/withdrawals)", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post(R"(/accounts/([^/]+)/withdrawals)", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post(R"(/accounts/([^/]+)/balance-inquiries)", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post(R"(/accounts/([^/]+)/balance-inquiries)", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Get(R"(/accounts/([^/]+)/iban)", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Get(R"(/accounts/([^/]+)/iban)", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Get(R"(/accounts/([^/]+)/statement)", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Get(R"(/accounts/([^/]+)/statement)", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Get("/accounts", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Get("/accounts", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post("/transfers/card-to-card", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/transfers/card-to-card", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post("/auth/otp", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/auth/otp", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post("/payments/online", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/payments/online", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Post("/transfers/paya", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Post("/transfers/paya", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Delete("/users/me", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Delete("/users/me", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-    server.Get("/users/me/rank", [&TM, &User_idx](const httplib::Request& req, httplib::Response& res){
-        Set_Response_USER(req, res, TM, User_idx);
+    server.Get("/users/me/rank", [&TM](const httplib::Request& req, httplib::Response& res){
+        Set_Response_USER(req, res, TM);
     });
-
     server.listen("127.0.0.1", 8081);
 }
